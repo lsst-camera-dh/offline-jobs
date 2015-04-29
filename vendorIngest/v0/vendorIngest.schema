@@ -1,0 +1,6 @@
+# -*- python -*-
+{
+    'schema_name' : 'vendorIngest',
+    'schema_version' : 0
+}
+
