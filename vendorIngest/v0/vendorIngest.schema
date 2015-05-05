@@ -2,5 +2,6 @@
 {
     'schema_name' : 'vendorIngest',
     'schema_version' : 0
+    'wavelength' : int,
+    'prnu_percent' : float,
 }
-
