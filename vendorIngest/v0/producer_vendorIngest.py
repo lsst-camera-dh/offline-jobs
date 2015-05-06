@@ -70,8 +70,8 @@ os.makedirs(targetDir)
 
 # md5 checksum comparison, pre- and post-ftp
 
-md5old = open(md5file).read().split()[0]
-md5new = hashlib.md5(open(datafile).read()).hexdigest()
+md5old = open(md5file).read().split()[2]
+md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
 if md5old != md5new:
    print 'Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
    sys.exit(1)
