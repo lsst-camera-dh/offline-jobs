@@ -15,7 +15,7 @@ print "Ingest LSST ITL Vendor Data from incoming ftp@SLAC"
 #os.system('printenv|sort')
 
 vendor = 'ITL'
-incomingFTPdir = '/afs/slac/public/incoming/lsst/p277'
+incomingFTPdir = '/afs/slac/public/incoming/lsst/ITL'
 
 #vendor = 'e2v'
 #incomingFTPdir = '/afs/slac/public/incoming/lsst/???'
