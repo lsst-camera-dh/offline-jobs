@@ -58,7 +58,7 @@ if vendor == 'ITL':
    try:
       flist = os.listdir(incomingFTPdir)
    except:
-      print 'Failure to find vendor ftp directory ',incomingFTPdir
+      print '\n%ERROR: Failure to find vendor ftp directory ',incomingFTPdir
       sys.exit(1)
       pass
 
@@ -73,7 +73,7 @@ if vendor == 'ITL':
    print 'datafile: ',datafile
 
    if md5file not in flist or datafile not in flist:
-      print '\n%ERROR: could not find expected files in FTP area'
+      print '\n%ERROR: Unable to find expected files in FTP area'
       print ' Full ftp directory listing (',incomingFTPdir,'):'
       for file in flist:
          print file
@@ -93,7 +93,7 @@ if vendor == 'ITL':
    md5old = open(md5file).read().split()[2].upper()
    md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
    if md5old != md5new:
-      print 'Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
+      print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
       sys.exit(1)
       pass
 
@@ -102,7 +102,7 @@ if vendor == 'ITL':
    try:
       tarfile.open(datafile,'r').extractall(targetDir)
    except:
-      print 'Failed to extractall from vendor tarball'
+      print '\n%ERROR: Failed to extractall from vendor tarball'
       sys.exit(1)
       pass
 
@@ -110,14 +110,14 @@ if vendor == 'ITL':
    vendorPointer = os.path.join(os.environ['PWD'],'vendorData')
    print 'vendorPointer = ',vendorPointer
    if os.access(vendorPointer,os.F_OK):
-      print 'ERROR: pointer to vendor data already exists in working directory'
+      print '\n%ERROR: pointer to vendor data already exists in working directory'
       sys.exit(1)
       pass
    try:
       os.symlink(targetDir,vendorPointer)
       print 'Link to vendor data created.'
    except:
-      print 'Unable to create link to vendorData...this should not happen.'
+      print '\n%ERROR: Unable to create link to vendorData...this should not happen.'
       sys.exit(1)
       pass
 
@@ -134,7 +134,7 @@ if vendor == 'ITL':
       #      shutil.move(datafile,os.path.join(trashDir,os.path.basename(datafile)))
       #      shutil.move(md5file,os.path.join(trashDir,os.path.basename(md5file)))
    except:
-      print 'Failed to cleanup incoming ftp directory'
+      print '\n%WARNING: Failed to cleanup incoming ftp directory'
       pass
 
 
@@ -167,7 +167,7 @@ if vendor == 'ITL':
       client.mkdir(targetLDirRoot,parents=True)
    except Exception as e:
       ekeys = e.__dict__.keys()
-      print "\n%ERROR: Failed to register dataset: ",file
+      print "\n%ERROR: Failed to create dataCatalog folder: ",targetLDirRoot
       print "Exception keys: ",ekeys
       for key in ekeys:
          if key == 'raw': continue
@@ -178,6 +178,7 @@ if vendor == 'ITL':
 
    dType = 'LSSTVENDORDATA'
    filetypeMap = {'fits':'fits','fit':'fits','txt':'txt','jpg':'jpg','png':'png','pdf':'pdf','html':'html','htm':'html'}
+   metaData = {"vendorIngestTime":deliveryTime}
 
    for root,dirs,files in os.walk(targetDir):
       print 'root = ',root
@@ -213,7 +214,7 @@ if vendor == 'ITL':
          print 'fType = ',fType
 
          try:
-            client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile)
+            client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile, versionMetadata=metaData)
          except Exception as e:
             ekeys = e.__dict__.keys()
             print "\n%ERROR: Failed to register dataset: ",file
