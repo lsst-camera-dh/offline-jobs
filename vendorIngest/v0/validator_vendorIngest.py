@@ -6,6 +6,7 @@ import numpy as np
 import ConfigParser
 import lcatr.schema
 import siteUtils
+from vendorFitsTranslators import ItlFitsTranslator, e2vFitsTranslator
 
 def validate(schema, **kwds):
     return lcatr.schema.valid(lcatr.schema.get(schema), **kwds)
@@ -20,6 +21,18 @@ class VendorResults(object):
                            ('y', (930, 1070))])
     def __init__(self):
         pass
+    def run_all(self, results):
+        self.fe55_analysis(results)
+        self.read_noise(results)
+        self.bright_defects(results)
+        self.dark_defects(results)
+        self.traps(results)
+        self.dark_current(results)
+        self.cte(results)
+        self.prnu(results)
+        self.flat_pairs(results)
+        self.ptc(results)
+        self.qe_analysis(results)
 
 class ItlResults(VendorResults):
     file_mapping = {'fe55_analysis' : 'fe55.txt',
@@ -258,20 +271,15 @@ if __name__ == '__main__':
 
     if siteUtils.getCcdVendor() == 'ITL':
         vendor = ItlResults(vendorDataDir)
+        translator = ItlFitsTranslator(vendorDataDir, '.')
     else:
         vendor = e2vResults(vendorDataDir)
+        translator = e2vFitsTranslator(vendorDataDir, '.')
 
-    vendor.fe55_analysis(results)
-    vendor.read_noise(results)
-    vendor.bright_defects(results)
-    vendor.dark_defects(results)
-    vendor.traps(results)
-    vendor.dark_current(results)
-    vendor.cte(results)
-    vendor.prnu(results)
-    vendor.flat_pairs(results)
-    vendor.ptc(results)
-    vendor.qe_analysis(results)
+    vendor.run_all(results)
+
+    translator.run_all()
+    results.extend([lcatr.schema.fileref.make(x) for x in translator.outfiles])
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
