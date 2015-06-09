@@ -140,17 +140,6 @@ class ItlResults(VendorResults):
                                     QE=np.average(qe_results[band])))
 
 class e2vResults(VendorResults):
-    subdir_mapping = {'fe55_analysis' : 'Xray Gain and PSF',
-                      'bright_defects' : 'Dark 3 images',
-                      'dark_defects' : 'superflat high/PRDefs',
-                      'dark_current' : '',
-                      'read_noise' : '',
-                      'cte' : '',
-                      'traps' : '', 
-                      'flat_pairs' : '',
-                      'prnu' : '',
-                      'qe_analysis' : ''}
-
     def __init__(self, rootdir):
         self.rootdir = rootdir
     def _csv_data(self, *args, **kwds):
@@ -262,15 +251,15 @@ class e2vResults(VendorResults):
                                     QE=np.average(qe_results[band])))
 
 if __name__ == '__main__':
-    results = []
+    results = [siteUtils.packageVersions()]
 
-    dataTree = os.readlink('vendorData')
-    print 'Vendor data location:', dataTree
+    vendorDataDir = os.readlink('vendorData')
+    print 'Vendor data location:', vendorDataDir
 
     if siteUtils.getCcdVendor() == 'ITL':
-        vendor = ItlResults(dataTree)
+        vendor = ItlResults(vendorDataDir)
     else:
-        vendor = e2vResults(dataTree)
+        vendor = e2vResults(vendorDataDir)
 
     vendor.fe55_analysis(results)
     vendor.read_noise(results)
