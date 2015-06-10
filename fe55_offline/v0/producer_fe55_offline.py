@@ -5,11 +5,8 @@ import lsst.eotest.sensor as sensorTest
 import siteUtils
 
 sensor_id = siteUtils.getUnitId()
-query = 'LSST_NUM=="%(sensor_id)s" && IMGTYPE=="FE55"' % locals()
 
-datasets = siteUtils.datacatalog_query(query)
-acq_job_id = max(datasets.job_ids())
-fe55_files = datasets.full_paths(job_id=acq_job_id)
+fe55_files = siteUtils.datacatalog_glob(sensor_id, "FE55", "FE55")
 
 print fe55_files
 sys.stdout.flush()
