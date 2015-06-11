@@ -1,18 +1,14 @@
 #!/usr/bin/env python
-import sys
 import lsst.eotest.sensor as sensorTest
-from lcatr.harness.helpers import dependency_glob
 import siteUtils
+import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
-
-superflat_files = siteUtils.datacatalog_glob(sensor_id, 'FLAT', 'SFLAT',
-                                             pattern='*_superflat_500_*')
-mask_files = dependency_glob('*_mask.fits')
-
-print superflat_files
-print mask_files
-sys.stdout.flush()
+sflat_files = siteUtils.datacatalog_glob('*_sflat_500_*.fits',
+                                         testtype='SFLAT_500',
+                                         imgtype='FLAT',
+                                         description='Superflat files:')
+mask_files = eotestUtils.glob_mask_files()
 
 task = sensorTest.CteTask()
-task.run(sensor_id, superflat_files, mask_files)
+task.run(sensor_id, sflat_files, mask_files)

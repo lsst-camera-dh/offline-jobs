@@ -138,9 +138,10 @@ if xtalk_file is not None:
     pylab.savefig('%s_crosstalk_matrix.png' % sensor_id)
 
 # Flat fields at wavelengths nearest the centers of the standard bands
-wl_files = siteUtils.datacatalog_glob(sensor_id, 'FLAT', 'QE', 
-                                      pattern='*_lambda_*.fits')
-print wl_files
+wl_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
+                                      testtype='LAMBDA',
+                                      imgtype='FLAT',
+                                      description='Lambda files:')
 wl_file_path = os.path.split(wl_files[0])[0]
 plots.flat_fields(wl_file_path)
 pylab.savefig('%s_flat_fields.png' % sensor_id)

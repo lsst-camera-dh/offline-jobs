@@ -1,23 +1,17 @@
 #!/usr/bin/env python
-import sys
 import lsst.eotest.sensor as sensorTest
-from lcatr.harness.helpers import dependency_glob
 import siteUtils
 import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
-
-lambda_files = siteUtils.datacatalog_glob(sensor_id, 'FLAT', 'QE', 
-                                          pattern='*_lambda_*.fits')
+lambda_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
+                                          testtype='LAMBDA',
+                                          imgtype='FLAT',
+                                          description='Lambda files:')
+mask_files = eotestUtils.glob_mask_files()
+gains = eotestUtils.getSensorGains(jobname='fe55_offline')
+# @todo Set correction image when it becomes available.
 correction_image = None
-mask_files = dependency_glob('*_mask.fits')
-
-print lambda_files
-print correction_image
-print mask_files
-sys.stdout.flush()
-
-gains = eotestUtils.getSensorGains(sensor_id, jobname='fe55_offline')
 
 task = sensorTest.PrnuTask()
 task.run(sensor_id, lambda_files, mask_files, gains, correction_image)
