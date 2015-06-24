@@ -175,7 +175,7 @@ class ItlResults(VendorResults):
 
 class e2vResults(VendorResults):
     def __init__(self, rootdir):
-        self.rootdir = rootdir
+        self.rootdir = rootdir.replace(' ', '\ ')
     def _csv_data(self, *args, **kwds):
         amp_data = {}
         subpath = os.path.join(*args)
@@ -306,15 +306,17 @@ class e2vResults(VendorResults):
 if __name__ == '__main__':
     results = [siteUtils.packageVersions()]
 
+    lsstnum = siteUtils.getUnitId()
+
     vendorDataDir = os.readlink('vendorData')
     print 'Vendor data location:', vendorDataDir
 
     if siteUtils.getCcdVendor() == 'ITL':
         vendor = ItlResults(vendorDataDir)
-        translator = ItlFitsTranslator(vendorDataDir, '.')
+        translator = ItlFitsTranslator(lsstnum, vendorDataDir, '.')
     else:
         vendor = e2vResults(vendorDataDir)
-        translator = e2vFitsTranslator(vendorDataDir, '.')
+        translator = e2vFitsTranslator(lsstnum, vendorDataDir, '.')
 
     results.extend(vendor.run_all())
 
