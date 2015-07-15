@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import sys
 import subprocess
 from collections import OrderedDict
 import numpy as np
@@ -23,17 +24,23 @@ class VendorResults(object):
         pass
     def run_all(self):
         results = []
-        results.extend(self.fe55_analysis())
-        results.extend(self.read_noise())
-        results.extend(self.bright_defects())
-        results.extend(self.dark_defects())
-        results.extend(self.traps())
-        results.extend(self.dark_current())
-        results.extend(self.cte())
-        results.extend(self.prnu())
-        results.extend(self.flat_pairs())
-        results.extend(self.ptc())
-        results.extend(self.qe_analysis())
+        failures = OrderedDict()
+        analyses = ('fe55_analysis', 'read_noise', 'bright_defects',
+                    'dark_defects', 'traps', 'dark_current', 'cte',
+                    'prnu', 'flat_pairs', 'ptc', 'qe_analysis')
+        for analysis in analyses:
+            try:
+                exec('my_results = self.%s()' % analysis)
+                results.extend(my_results)
+            except Exception, eobj:
+                failures[analysis] = eobj
+        if failures:
+            print
+            print "Failed to extract vendor results for the following:"
+            for analysis, eobj in failures.items():
+                print "%s: %s, %s" % (analysis, type(eobj), eobj)
+            print
+        sys.stdout.flush()
         return results
 
 class ItlResults(VendorResults):
