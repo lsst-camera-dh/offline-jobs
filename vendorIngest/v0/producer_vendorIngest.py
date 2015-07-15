@@ -81,10 +81,11 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
          print ' ',key,': ',getattr(e,key)
          pass
       sys.exit(1)
-      
+
 
    dType = 'LSSTVENDORDATA'
-   filetypeMap = {'fits':'fits','fit':'fits','txt':'txt','jpg':'jpg','png':'png','pdf':'pdf','html':'html','htm':'html'}
+   filetypeMap = {'fits':'fits','fit':'fits','txt':'txt','jpg':'jpg','png':'png','pdf':'pdf','html':'html','ht
+m':'html'}
    metaData = {"vendorDeliveryTime":deliveryTime}
 
    for root,dirs,files in os.walk(targetDir):
@@ -93,7 +94,7 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
       ## print 'dirs = ',dirs
       ## print 'files = ',files
       root = root.replace(' ','_').replace('(','').replace(')','')  #####################
-      
+
       for dir in dirs:       ## Loop over all vendor directories, create logical folders in dataCat
          dir = dir.replace(' ','_').replace('(','').replace(')','')  #####################
          if root == targetDir:
@@ -103,7 +104,7 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
             #print 'root <> targetDir'
             newDir = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir),dir)
             pass
-         
+
          if not client.exists(newDir):
             print 'Creating dataCat folder: ',newDir
             try:
@@ -132,7 +133,8 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
          if relpath == '.':
             dPath = targetLDirRoot
          else:
-            dPath = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir)) ## logical location within dataCatalog
+            dPath = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir)) ## logical location within da
+taCatalog
             pass
          #print 'dPath = ',dPath
 
@@ -145,7 +147,8 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
          #print 'fType = ',fType
 
          try:
-            client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile, versionMetadata=metaData)
+            client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile, versionMetadata=metaDa
+ta)
          except Exception as e:
             ekeys = e.__dict__.keys()
             print "\n%ERROR: Failed to register dataset: ",file
@@ -197,7 +200,7 @@ if vendor == 'ITL':
          print file
          pass
       sys.exit(1)
-      
+
 # Create target directory for Vendor Data (format = YYYYMMDD.HHMMSS)
    deliveryTime = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
    targetDir = os.path.join(vendorDir,deliveryTime)
@@ -217,7 +220,7 @@ if vendor == 'ITL':
    else:
       print '\n%ERROR: Unable to parse supplied md5 file: ',md5file
       sys.exit(1)
-      
+
    md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
    if md5old != md5new:
       print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
@@ -314,7 +317,7 @@ elif vendor == 'e2v':
          print file
          pass
       sys.exit(1)
-      
+
    print 'md5file:  ',md5file
    print 'datafile: ',datafile
 
@@ -367,12 +370,28 @@ elif vendor == 'e2v':
    deliveryTime = os.readlink(incomingFTPdir)
    print 'Create sym link for deliveryTime (from incomingFTPdir) = ',deliveryTime
    os.symlink(deliveryTime,'deliveryTime')
-   
+
 
 
 # Create pointer to new Vendor Data for subsequent 'validator' step
+   # Look into the top level of the targetDir to find name of vendor delivery directory
+   topOfDelivery = ''
+   for root,dirs,files in os.walk(targetDir):
+      if len(dirs) == 1 and len(files) == 0:
+         topOfDelivery = os.path.join(root,dirs[0])
+      else:
+         print '%ERROR: vendor data delivery is not organized properly'
+         print 'root = ',root
+         print 'dirs = ',dirs
+         print 'files= ',files
+         sys.exit(1)
+         pass
+      break
+   print 'topOfDelivery = ',topOfDelivery
+
    try:
-      os.symlink(targetDir,'vendorData')
+      os.symlink(topOfDelivery,'vendorData')
+      #      os.symlink(targetDir,'vendorData')
       print 'Link to vendor data created.'
    except:
       print '\n%ERROR: Unable to create symbolic link to vendorData.'
