@@ -37,27 +37,34 @@ class VendorResults(object):
         return results
 
 class ItlResults(VendorResults):
-    file_mapping = {'fe55_analysis' : 'fe55.txt',
-                    'bright_defects' : 'brightdefects.txt',
-                    'dark_defects' : 'darkdefects.txt',
-                    'dark_current' : 'dark.txt',
-                    'read_noise' : 'gain.txt',
-                    'cte' : 'eper1.txt',
-                    'traps' : 'traps.txt',
-                    'flat_pairs' : 'linearity.txt',
-                    'prnu' : 'prnu.txt',
-                    'qe_analysis' : 'qe.txt'}
+    file_end_mapping = {'fe55_analysis' : 'fe55.txt',
+                        'bright_defects' : 'brightdefects.txt',
+                        'dark_defects' : 'darkdefects.txt',
+                        'dark_current' : 'dark.txt',
+                        'read_noise' : 'gain.txt',
+                        'cte' : 'eper1.txt',
+                        'traps' : 'traps.txt',
+                        'flat_pairs' : 'linearity.txt',
+                        'prnu' : 'prnu.txt',
+                        'qe_analysis' : 'qe.txt'}
     def __init__(self, rootdir):
         super(ItlResults, self).__init__()
-        command = 'find %(rootdir)s -name \*.txt -print' % locals()
+        command = 'find %(rootdir)s/ -name \*.txt -print' % locals()
         text_files = subprocess.check_output(command, shell=True).split()
+        print "Found ITL results files:"
+        for item in text_files:
+            print "  ", item
         self.inverse_mapping = dict([(os.path.basename(path), path) for path
                                      in text_files])
         self._configs = {}
     def __getitem__(self, key):
         if not self._configs.has_key(key):
             self._configs[key] = ConfigParser.ConfigParser()
-            target = self.file_mapping[key]
+            file_ending = self.file_end_mapping[key]
+            for item in self.inverse_mapping.values():
+                if item.endswith(file_ending):
+                    target = os.path.basename(item)
+                    break
             self._configs[key].read(self.inverse_mapping[target])
         return self._configs[key]
     def fe55_analysis(self):
