@@ -41,7 +41,7 @@ vendorLDir = os.path.join('/LSST/vendorData/',vendor)                 ## dataCat
 print 'vendorDir = ',vendorDir
 print 'vendorLDir = ',vendorLDir
 
-
+debug = True
 
 
 
@@ -50,7 +50,7 @@ print 'vendorLDir = ',vendorLDir
 def regFiles(targetDir,targetLDirRoot,deliveryTime):
 
    ## Register files in dataCatalog
-   #print '===\nEntering regFiles(',targetDir,',',targetLDirRoot,',',deliveryTime,')'
+   if debug: print '===\nEntering regFiles(',targetDir,',',targetLDirRoot,',',deliveryTime,')'
 
    ## Path to new RESTful dataCatalog client code (and dependency)
    #dc1 = '/afs/slac.stanford.edu/u/gl/srs/datacat/dev/0.3/lib'
@@ -89,18 +89,20 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
 
    for root,dirs,files in os.walk(targetDir):
       print '-----------------'
-      ## print 'root = ',root
-      ## print 'dirs = ',dirs
-      ## print 'files = ',files
+      if debug:
+         print 'root = ',root
+         print 'dirs = ',dirs
+         print 'files = ',files
+         pass
       root = root.replace(' ','_').replace('(','').replace(')','')  #####################
       
       for dir in dirs:       ## Loop over all vendor directories, create logical folders in dataCat
          dir = dir.replace(' ','_').replace('(','').replace(')','')  #####################
          if root == targetDir:
-            #print 'root == targetDir'
+            if debug: print 'root == targetDir'
             newDir = os.path.join(targetLDirRoot,dir)
          else:
-            #print 'root <> targetDir'
+            if debug: print 'root <> targetDir'
             newDir = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir),dir)
             pass
          
@@ -127,14 +129,12 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
          file = file.replace(' ','_').replace('(','').replace(')','') ##################
          print 'Registering file: ',file
          vFile = os.path.join(root,file)   ## vendor file physical location
-         #print 'vFile = ',vFile
          relpath = os.path.relpath(root,targetDir)
          if relpath == '.':
             dPath = targetLDirRoot
          else:
             dPath = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir)) ## logical location within dataCatalog
             pass
-         #print 'dPath = ',dPath
 
          ext = os.path.splitext(file)[1].strip('.')
          if ext in filetypeMap:
@@ -142,7 +142,12 @@ def regFiles(targetDir,targetLDirRoot,deliveryTime):
          else:
             fType = 'dat'
             pass
-         #print 'fType = ',fType
+
+         if debug:
+            print 'vFile = ',vFile
+            print 'dPath = ',dPath
+            print 'fType = ',fType
+            pass
 
          try:
             client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile, versionMetadata=metaData)
@@ -394,6 +399,23 @@ elif vendor == 'e2v':
       print '\n%ERROR: Unable to create symbolic link to vendorData.'
       sys.exit(1)
       pass
+
+
+# Change file permissions and group owner
+   print 'Adjust file permissions'
+   for dirpath, dirnames, filenames in os.walk(topOfDelivery):
+      for dirname in dirnames:
+         path = os.path.join(dirpath, dirname)
+         os.chmod(path, 0o770)     ## all permissions for owner and group, none for world
+         os.lchown(path,-1,2218)
+         pass
+      for filename in filenames:
+         path = os.path.join(dirpath, filename)
+         os.chmod(path, 0o660)     ## rw permissions for owner and group, none for world
+         os.lchown(path,-1,2218)    ## 2218 = 'lsst'
+         pass
+      pass
+
 
 # Register files in dataCatalog
    print '\n===\nRegister vendor data in dataCatalog'
