@@ -304,12 +304,27 @@ class e2vResults(VendorResults):
         for line in open(csv_file):
             tokens = line.split(',')
             if tokens[0] == 'Amp':
-                wls = [float(x.strip()) for x in tokens[1:]]
+#                wls = [float(x.strip()) for x in tokens[1:]]
+                wls = []
+                for item in tokens[1:]:
+                    try:
+                        wls.append(float(item.strip()))
+                    except:
+                        wls.append(None)
             else:
-                values = [float(x.strip()) for x in tokens[1:]]
+#                values = [float(x.strip()) for x in tokens[1:]]
+                values = []
+                for item in tokens[1:]:
+                    try:
+                        values.append(float(item.strip()))
+                    except:
+                        values.append(None)
                 for wl, value in zip(wls, values):
                     for band, wl_range in self.qe_band_passes.items():
-                        if wl >= wl_range[0] and wl <= wl_range[1]:
+                        if (wl is not None and
+                            value is not None and
+                            wl >= wl_range[0] and 
+                            wl <= wl_range[1]):
                             qe_results[band].append(value)
         results = []
         for band in qe_results:
