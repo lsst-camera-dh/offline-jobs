@@ -24,6 +24,7 @@ def processName_dependencyGlob(*args, **kwds):
 
 class JsonRepackager(object):
     _key_map = dict((('gain', 'GAIN'),
+                     ('gain_error', 'GAIN_ERROR'),
                      ('psf_sigma', 'PSF_SIGMA'),
                      ('read_noise', 'READ_NOISE'),
                      ('system_noise', 'SYSTEM_NOISE'),
