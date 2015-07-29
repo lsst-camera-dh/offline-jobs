@@ -77,9 +77,21 @@ def append_prnu(results_file, prnu_file):
 sensor_id = siteUtils.getUnitId()
 results_file = '%s_eotest_results.fits' % sensor_id
 
+# Wavelength scan files, which are used in the flat field plots and
+# for determining the maximum number of active pixels for the image
+# quality statistics
+wl_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
+                                      testtype='LAMBDA',
+                                      imgtype='FLAT',
+                                      description='Lambda files:')
+
+total_num, rolloff_mask = sensorTest.pixel_counts(wl_files[0])
+
 # Aggregate information from summary.lims files into
 # a final EOTestResults output file.
 repackager = JsonRepackager()
+repackager.eotest_results.add_ccd_result('TOTAL_NUM_PIXELS', total_num)
+repackager.eotest_results.add_ccd_result('ROLLOFF_MASK_PIXELS', rolloff_mask)
 repackager.process_files(processName_dependencyGlob('summary.lims'))
 repackager.write(results_file)
 
@@ -139,10 +151,6 @@ if xtalk_file is not None:
     pylab.savefig('%s_crosstalk_matrix.png' % sensor_id)
 
 # Flat fields at wavelengths nearest the centers of the standard bands
-wl_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
-                                      testtype='LAMBDA',
-                                      imgtype='FLAT',
-                                      description='Lambda files:')
 wl_file_path = os.path.split(wl_files[0])[0]
 plots.flat_fields(wl_file_path)
 pylab.savefig('%s_flat_fields.png' % sensor_id)
