@@ -83,6 +83,7 @@ class ItlResults(VendorResults):
             amp_catalog = dict(self[job].items('Events Channel %s' % ext))
             results.append(validate(job, amp=amp,
                                     gain=gains['gain_%s' % ext],
+                                    gain_error=0,
                                     psf_sigma=amp_catalog['meansigma']))
         return results
     def read_noise(self):
@@ -218,6 +219,7 @@ class e2vResults(VendorResults):
         results = []
         for amp in self.amps:
             results.append(validate(job, amp=amp, gain=gains[amp],
+                                    gain_error=0,
                                     psf_sigma=psf_sigmas[amp]))
         return results
     def read_noise(self):
