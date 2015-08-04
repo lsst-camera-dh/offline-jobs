@@ -24,9 +24,10 @@ import tarfile
 
 print "Ingest LSST Vendor Data from ftp directory, SLAC:/nfs/farm/g/lsst/u1/vendorData/FTP"
 start = datetime.datetime.now()
-print start
+print 'start time: ',start
 print 'Current working directory: ',os.environ['PWD']
-os.system('printenv|grep -i lcatr')
+#rc = os.system('printenv|grep -i lcatr')
+rc = os.system('echo ALL ENVIRONMENT VARIABLES;printenv|sort;echo END ENVVAR LIST')
 
 vendor = os.environ['LCATR_UNIT_ID'].split('-')[0]
 LSSTID = os.environ['LCATR_UNIT_ID']
@@ -42,9 +43,6 @@ print 'vendorDir = ',vendorDir
 print 'vendorLDir = ',vendorLDir
 
 debug = True
-
-
-
 
 
 def regFiles(targetDir,targetLDirRoot,deliveryTime):
