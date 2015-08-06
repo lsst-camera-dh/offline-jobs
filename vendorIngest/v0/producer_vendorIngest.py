@@ -90,6 +90,7 @@ print 'JobHarness ID = ',jobid
 eTmode = os.path.basename(os.environ['LCATR_LIMS_URL']).strip()
 print 'eTraveler mode: ',eTmode
 
+
 # Determine vendor
 vendor = os.environ['LCATR_UNIT_ID'].split('-')[0]
 LSSTID = os.environ['LCATR_UNIT_ID']
