@@ -11,6 +11,41 @@ Tentative Conventions:
 5. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-98765
 6. eTraveler "Hardware Type" corresponds to LCATR_UNIT_TYPE ("ITL-CCD" or "e2v-CCD")
 
+=====================================================================================
+=====================================================================================
+=====================================================================================
+
+Where is everything?
+
+LSSTROOT = /nfs/farm/g/lsst/u1
+
+** Original copy of vendor delivery (maybe):
+$LSSTROOT/vendorData/FTP/<vendor>/<deliveryDate>
+
+where vendor = {e2v,ITL}
+
+** Archive copy of vendor delivery:
+$LSSTROOT/vendorData/FTP/<vendor>/delivery/<deliveryDate>/*.{tar.bz2, md5sum}
+
+where deliveryDate = YYYYMMDD or YYYYMMDD{a-z} if multiple deliveries on same day
+
+** Unpacked copy of vendor delivery (after eTraveler SR-RCV-1):
+$LSSTROOT/vendorData/<vendor>/<sensorID>/<eTmode>/<JHinstance>/...
+
+where
+  sensorID = official LSST sensorID, e.g., e2v-11093-10-04
+
+  eTmode = {Prod, Dev}
+
+  JHinstance = the unique LCATR_JOB_ID value when the harnessed job is running
+
+** dataCatalog location
+
+/LSST/vendorData/<vendor>/<sensorID>/<eTmode>/<JHinstance>/...
+
+=====================================================================================
+=====================================================================================
+=====================================================================================
 
 
 '''
@@ -21,30 +56,62 @@ import datetime
 import tarfile
 
 
+debug = False
 
-print "Ingest LSST Vendor Data from ftp directory, SLAC:/nfs/farm/g/lsst/u1/vendorData/FTP"
+
+print '\n\nIngest LSST Vendor Data.'
 start = datetime.datetime.now()
-print start
-print 'Current working directory: ',os.environ['PWD']
-os.system('printenv|grep -i lcatr')
+print 'Configuration:\n============='
+print 'Start time: ',start
+print 'Current working directory (os.environ): ',os.environ['PWD']
+#rc = os.system('printenv|grep -i lcatr')
+if debug: rc = os.system('echo ALL ENVIRONMENT VARIABLES;printenv|sort;echo END ENVVAR LIST')
 
+
+
+# Determine true working directory and extract JOB_ID from final path element
+#   (Note: this took a huge amount of trial and error because os.environ['PWD']
+#    incorrectly reports the current directory as the one the lcatr command
+#    was executed from -- not the correct directory with the instance #)
+cmd = 'printenv PWD'
+pwd = subprocess.check_output(cmd, shell=True).strip()
+print 'True current working directory: ',pwd
+jobid = os.path.basename(pwd)
+try:
+   foo = int(jobid)
+except:
+   print '%ERROR: Failure to parse jobHarness version number from PWD: ',jobid
+   sys.exit(1)
+   pass
+print 'JobHarness ID = ',jobid
+
+# Determine eTraveler mode (e.g., "Prod" or "Dev")
+#http://lsst-camera.slac.stanford.edu:80/eTraveler/Dev
+eTmode = os.path.basename(os.environ['LCATR_LIMS_URL']).strip()
+print 'eTraveler mode: ',eTmode
+
+# Determine vendor
 vendor = os.environ['LCATR_UNIT_ID'].split('-')[0]
 LSSTID = os.environ['LCATR_UNIT_ID']
-print 'Processing vendor: ',vendor,', sensor: ',LSSTID
+print 'Vendor: ',vendor
+print 'SensorID: ',LSSTID
 
 LCAROOT = '/nfs/farm/g/lsst/u1'    ## ROOT of all LSST Camera data at SLAC
 
-vendorDir = os.path.join(LCAROOT,'vendorData',vendor)    ## physical location
-vendorFTPdir = os.path.join(LCAROOT,'vendorData/FTP',vendor)
-vendorLDir = os.path.join('/LSST/vendorData/',vendor)                 ## dataCatalog
+vendorFTPdir = os.path.join(LCAROOT,'vendorData/FTP',vendor,LSSTID) ## physical location of tarball
+vendorDir = os.path.join(LCAROOT,'vendorData',vendor,LSSTID,eTmode,jobid) ## physical location to store
+vendorLDir = os.path.join('/LSST/vendorData/',vendor,LSSTID,eTmode,jobid) ## dataCatalog location
 
-print 'vendorDir = ',vendorDir
-print 'vendorLDir = ',vendorLDir
+print 'vendorFTPdir (input)       = ',vendorFTPdir
+print 'vendorDir (output)         = ',vendorDir
+print 'vendorLDir (registration)  = ',vendorLDir
+print '==================================================\n'
 
-debug = True
 
 
-
+####################################################################################
+####################################################################################
+####################################################################################
 
 
 def regFiles(targetDir,targetLDirRoot,deliveryTime):
@@ -286,17 +353,16 @@ elif vendor == 'e2v':
 # Check FTP area if Vendor Data is present
 #    Require both a compressed tarball (data) and md5 checksum files
 #    File recognition recipe may need to change...
-   incomingFTPdir = os.path.join(vendorFTPdir,LSSTID)
-   print 'incomingFTPdir = ',incomingFTPdir
 
+   print 'Check for vendor data in FTP directory.'
    try:
-      flist = os.listdir(incomingFTPdir)
+      flist = os.listdir(vendorFTPdir)
    except:
-      print '\n%ERROR: Failure to find vendor ftp directory ',incomingFTPdir
+      print '\n%ERROR: Failure to find vendor ftp directory ',vendorFTPdir
       sys.exit(1)
       pass
 
-   print 'There are ',len(flist),' files found in ',incomingFTPdir
+   print 'There are ',len(flist),' files found in ',vendorFTPdir
 
    ## File naming convention for e2v as of June 2015
    ##   e2v files look like, e.g., e2v-11093-02-01.{md5,tar.bz2}
@@ -314,31 +380,26 @@ elif vendor == 'e2v':
       pass
    if len(md5file) == 0 or len(datafile) == 0:
       print '\n%ERROR: Unable to find expected files in FTP area'
-      print ' Full ftp directory listing (',incomingFTPdir,'):'
+      print ' Full ftp directory listing (',vendorFTPdir,'):'
       for file in flist:
          print file
          pass
       sys.exit(1)
       
-   print 'md5file:  ',md5file
-   print 'datafile: ',datafile
+   print 'Found md5file:  ',md5file
+   print 'Found datafile: ',datafile
 
-
+   
 # Create target directory for Vendor Data
-#  directory format:  $LCAROOT/vendorData/<vendorName>/<sensorID>
-   #   deliveryTime = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
-   #   targetDir = os.path.join(vendorDir,deliveryTime)
-   targetDir = os.path.join(vendorDir,LSSTID)
-   print 'targetDir = ',targetDir
-   if not os.access(targetDir,os.F_OK): os.makedirs(targetDir)
-
+   print 'Create target directory for vendor data.'
+   if not os.access(vendorDir,os.F_OK): os.makedirs(vendorDir)
 
 # md5 checksum comparison, pre- and post-ftp
    print 'Verify md5 checksums'
    print datetime.datetime.now()
 
-   md5file = os.path.join(incomingFTPdir,md5file)
-   datafile = os.path.join(incomingFTPdir,datafile)
+   md5file = os.path.join(vendorFTPdir,md5file)
+   datafile = os.path.join(vendorFTPdir,datafile)
 
    md5old = open(md5file).read().split()
    if len(md5old) == 2:             ## Current e2v standard format
@@ -350,46 +411,35 @@ elif vendor == 'e2v':
       sys.exit(1)
 
    md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
+   print 'Old e2v checksum = ',md5old
    print 'New md5 checksum = ',md5new
    if md5old != md5new:
       print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
       sys.exit(1)
       pass
-
+   print 'Checksums match.'
 
 # Uncompress/untar into target directory
    print 'Uncompress and unpack tarball'
    print datetime.datetime.now()
 
    try:
-      tarfile.open(datafile,'r').extractall(targetDir)
+      tarfile.open(datafile,'r').extractall(vendorDir)
    except:
       print '\n%ERROR: Failed to extractall from vendor tarball'
       sys.exit(1)
       pass
 
 # Create a sym-link containing the delivery time (for posterity)
-   deliveryTime = os.readlink(incomingFTPdir)
-   print 'Create sym link for deliveryTime (from incomingFTPdir) = ',deliveryTime
+   deliveryTime = os.readlink(vendorFTPdir)
+   deliveryTime = os.path.basename(deliveryTime)
+   print 'Create sym link for deliveryTime (from vendorFTPdir) = ',deliveryTime
    os.symlink(deliveryTime,'deliveryTime')
    
 
-
 # Create pointer to new Vendor Data for subsequent 'validator' step
-   # Look into the top level of the targetDir to find name of vendor delivery directory
-   topOfDelivery = ''
-   for root,dirs,files in os.walk(targetDir):
-      if len(dirs) == 1 and len(files) == 0:
-         topOfDelivery = os.path.join(root,dirs[0])
-      else:
-         print '%ERROR: vendor data delivery is not organized properly'
-         print 'root = ',root
-         print 'dirs = ',dirs
-         print 'files= ',files
-         sys.exit(1)
-         pass
-      break
-   print 'topOfDelivery = ',topOfDelivery
+## As of July 2015 e2v deliveries contain NO subdirectories - all files in top-level
+   topOfDelivery = vendorDir
 
    try:
       os.symlink(topOfDelivery,'vendorData')
@@ -420,9 +470,7 @@ elif vendor == 'e2v':
 # Register files in dataCatalog
    print '\n===\nRegister vendor data in dataCatalog'
    print datetime.datetime.now()
-
-   targetLDirRoot = os.path.join(vendorLDir,LSSTID,deliveryTime)
-   regFiles(targetDir,targetLDirRoot,deliveryTime)
+   regFiles(vendorDir,vendorLDir,deliveryTime)
 
    pass
 
