@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 producer_vendorIngest.py - jobHarness script for use by eTraveler to ingest vendor data
 
 Tentative Conventions:
@@ -48,12 +48,13 @@ where
 =====================================================================================
 
 
-'''
+"""
 import os,sys, shutil
 import hashlib
 import subprocess, shlex
 import datetime
 import tarfile
+import registry
 
 
 debug = False
@@ -108,130 +109,88 @@ print 'vendorDir (output)         = ',vendorDir
 print 'vendorLDir (registration)  = ',vendorLDir
 print '==================================================\n'
 
+##############################################################################
+## Setup RESTful dataCatalog client
+##############################################################################
+myDC = registry.registry(debug=True,dryrun=False)
+
+myDC.init()
+
+myDC.dumpConfig()
+
+sys.stdout.flush()
+##############################################################################
+
 
 
 ####################################################################################
 ####################################################################################
 ####################################################################################
 
+def sanitize(path):
+   """Remove offending characters from string"""
+   newPath = path.replace(' ','_').replace('(','').replace(')','')
+   print 'original  string[',len(path),']: ',path
+   print 'sanitized string[',len(newPath),']: ',newPath
+   return newPath
 
-def regFiles(targetDir,targetLDirRoot,deliveryTime):
 
-   ## Register files in dataCatalog
-   if debug: print '===\nEntering regFiles(',targetDir,',',targetLDirRoot,',',deliveryTime,')'
 
-   ## Path to new RESTful dataCatalog client code (and dependency)
-   #dc1 = '/afs/slac.stanford.edu/u/gl/srs/datacat/dev/0.3/lib'
-   #sys.path.append(dc1)
+def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
+   """Register vendor files at SLAC in dataCatalog"""
 
-   ## Initialize dataCatalog RESTful client interface
-   from datacat import Client
-   from datacat.auth import HMACAuthSRS
+   
+   debug = True     ####### DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG
+   
 
-   url = "http://srs.slac.stanford.edu/datacat-v0.3/r"
-   key_id = "2299c5cc-bbba-4009-8ea9-8ec61c7fb13d"
-   secret_key = "pcda/8JUnCsK7vSENGxP3zMjbdaIUIeOXpBF8PlHXvQ6GNzJ4d4vBghyHHCUOZ+D14LBxMGRqy3aphk5M2LJ1w=="
-   auth_strategy = HMACAuthSRS(key_id=key_id, secret_key=secret_key, url=url)
-   client = Client(url, auth_strategy=auth_strategy)
-
-   print 'targetLDirRoot = ',targetLDirRoot
+   if debug: print '===\nEntering regVendorFiles(',targetDirRoot,',',targetLDirRoot,',',deliveryTime,')'
    site = 'slac.lca.archive'
-   print 'site = ',site
 
-   try:
-      client.mkdir(targetLDirRoot,parents=True)
-   except Exception as e:
-      ekeys = e.__dict__.keys()
-      print "\n%ERROR: Failed to create dataCatalog folder: ",targetLDirRoot
-      print "Exception keys: ",ekeys
-      for key in ekeys:
-         if key == 'raw': continue
-         print ' ',key,': ',getattr(e,key)
-         pass
-      sys.exit(1)
-      
+   myDC.dumpConfig()
 
    dType = 'LSSTVENDORDATA'
-   filetypeMap = {'fits':'fits','fit':'fits','txt':'txt','jpg':'jpg','png':'png','pdf':'pdf','html':'html','htm':'html'}
+   filetypeMap = {'fits':'fits','fit':'fits','txt':'txt','jpg':'jpg','png':'png','pdf':'pdf','html':'html','htm':'html','xls':'xls'}
    metaData = {"vendorDeliveryTime":deliveryTime}
 
-   for root,dirs,files in os.walk(targetDir):
+   for root,dirs,files in os.walk(targetDirRoot):
       print '-----------------'
       if debug:
          print 'root = ',root
-         print 'dirs = ',dirs
-         print 'files = ',files
+         print '# dirs = ',len(dirs)
+         print '# files = ',len(files)
          pass
-      root = root.replace(' ','_').replace('(','').replace(')','')  #####################
-      
-      for dir in dirs:       ## Loop over all vendor directories, create logical folders in dataCat
-         dir = dir.replace(' ','_').replace('(','').replace(')','')  #####################
-         if root == targetDir:
-            if debug: print 'root == targetDir'
-            newDir = os.path.join(targetLDirRoot,dir)
-         else:
-            if debug: print 'root <> targetDir'
-            newDir = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir),dir)
-            pass
-         
-         if not client.exists(newDir):
-            print 'Creating dataCat folder: ',newDir
-            try:
-               client.mkdir(newDir, parents=True)
-            except Exception as e:
-               ekeys = e.__dict__.keys()
-               print "\n%ERROR: Failed to create dataCat folder: ",newDir
-               print "Exception keys: ",ekeys
-               for key in ekeys:
-                  if key == 'raw': continue
-                  print ' ',key,': ',getattr(e,key)
-                  pass
-               sys.exit(1)
-            pass
-         else:
-            print "dataCatalog folder already exists: ",newDir
-            pass
-         pass
+
+      commonPath = os.path.relpath(root,targetDirRoot)
+      if commonPath == '.': commonPath=''
+      if debug:print 'commonPath = ',commonPath
 
       for file in files:                   ## Loop over all vendor files and register in dataCat
-         file = file.replace(' ','_').replace('(','').replace(')','') ##################
-         print 'Registering file: ',file
-         vFile = os.path.join(root,file)   ## vendor file physical location
-         relpath = os.path.relpath(root,targetDir)
-         if relpath == '.':
-            dPath = targetLDirRoot
-         else:
-            dPath = os.path.join(targetLDirRoot,os.path.relpath(root,targetDir)) ## logical location within dataCatalog
-            pass
+         print 'Adding dataCatalog registration for file: ',file
 
+         filePath = os.path.join(root,file)
+         dcFolder = os.path.join(targetLDirRoot,sanitize(commonPath))
+         
+         # Extract file extension and assign dataCatalog "file type"
          ext = os.path.splitext(file)[1].strip('.')
          if ext in filetypeMap:
             fType = filetypeMap[ext]
          else:
             fType = 'dat'
             pass
-
+ 
          if debug:
-            print 'vFile = ',vFile
-            print 'dPath = ',dPath
-            print 'fType = ',fType
+            print '\n Add registry data:'
+            print 'filePath = ',filePath
+            print 'dcFolder = ',dcFolder
+            print 'site     = ',site
+            print 'fType    = ',fType
+            print 'dType    = ',dType
             pass
 
-         try:
-            client.create_dataset(dPath, file, dType, fType, site=site, resource=vFile, versionMetadata=metaData)
-         except Exception as e:
-            ekeys = e.__dict__.keys()
-            print "\n%ERROR: Failed to register dataset: ",file
-            print "Exception keys: ",ekeys
-            for key in ekeys:
-               if key == 'raw': continue
-               print ' ',key,': ',getattr(e,key)
-               pass
-            sys.exit(1)
+         myDC.register(filePath, dcFolder, site, fType, dType, metaData=metaData)
          pass
       pass
    return
-
 
 
 
@@ -253,7 +212,7 @@ if vendor == 'ITL':
       sys.exit(1)
       pass
 
-   print 'There are ',len(flist),' files found in ',incomingFTPdir
+   print 'There are ',len(flist),' directory entries found in ',incomingFTPdir
 
    ## File naming convention for ITL as of May 2015
    vendorID = LSSTID.split('-',1)[1]
@@ -471,7 +430,7 @@ elif vendor == 'e2v':
 # Register files in dataCatalog
    print '\n===\nRegister vendor data in dataCatalog'
    print datetime.datetime.now()
-   regFiles(vendorDir,vendorLDir,deliveryTime)
+   regVendorFiles(vendorDir,vendorLDir,deliveryTime)
 
    pass
 
