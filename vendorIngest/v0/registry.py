@@ -153,7 +153,7 @@ class registry(object):
         NOTE: 'crawl' currently only works at SLAC
         """
         
-        if not self.quiet: print '\n***** Processing file ',fn
+        if not self.quiet: print '\n** registry.register: ',fn
 
         addLoc = False
         reCrawl = False

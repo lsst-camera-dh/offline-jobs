@@ -58,6 +58,7 @@ import registry
 
 
 debug = False
+dryrun = False
 
 
 print '\n\nIngest LSST Vendor Data.'
@@ -109,17 +110,16 @@ print 'vendorDir (output)         = ',vendorDir
 print 'vendorLDir (registration)  = ',vendorLDir
 print '==================================================\n'
 
-##############################################################################
+####################################################################################
 ## Setup RESTful dataCatalog client
-##############################################################################
-myDC = registry.registry(debug=True,dryrun=False)
+####################################################################################
+myDC = registry.registry(debug=debug,dryrun=dryrun)
 
 myDC.init()
 
 myDC.dumpConfig()
 
 sys.stdout.flush()
-##############################################################################
 
 
 
@@ -130,19 +130,14 @@ sys.stdout.flush()
 def sanitize(path):
    """Remove offending characters from string"""
    newPath = path.replace(' ','_').replace('(','').replace(')','')
-   print 'original  string[',len(path),']: ',path
-   print 'sanitized string[',len(newPath),']: ',newPath
+   if debug: print 'original  string[',len(path),']: ',path
+   if debug: print 'sanitized string[',len(newPath),']: ',newPath
    return newPath
 
 
 
 def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
    """Register vendor files at SLAC in dataCatalog"""
-
-   
-   debug = True     ####### DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG-DEBUG
-   
-
    if debug: print '===\nEntering regVendorFiles(',targetDirRoot,',',targetLDirRoot,',',deliveryTime,')'
    site = 'slac.lca.archive'
 
@@ -154,6 +149,7 @@ def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
 
    for root,dirs,files in os.walk(targetDirRoot):
       print '-----------------'
+      sys.stdout.flush()
       if debug:
          print 'root = ',root
          print '# dirs = ',len(dirs)
@@ -165,7 +161,7 @@ def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
       if debug:print 'commonPath = ',commonPath
 
       for file in files:                   ## Loop over all vendor files and register in dataCat
-         print 'Adding dataCatalog registration for file: ',file
+         if debug: print 'Adding dataCatalog registration for file: ',file
 
          filePath = os.path.join(root,file)
          dcFolder = os.path.join(targetLDirRoot,sanitize(commonPath))
@@ -188,127 +184,20 @@ def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
             pass
 
          myDC.register(filePath, dcFolder, site, fType, dType, metaData=metaData)
+         sys.stdout.flush()
          pass
       pass
+   myDC.dumpStats()
    return
 
 
 
-####################################################################
-###########    ITL    ##############################################
-####################################################################
-if vendor == 'ITL':
-
-# Check FTP area if Vendor Data is present
-#    Require both a compressed tarball (data) and md5 checksum files
-#    File recognition recipe may need to change...
-   incomingFTPdir = '/afs/slac/public/incoming/lsst/ITL'
-   print 'incomingFTPdir = ',incomingFTPdir
-
-   try:
-      flist = os.listdir(incomingFTPdir)
-   except:
-      print '\n%ERROR: Failure to find vendor ftp directory ',incomingFTPdir
-      sys.exit(1)
-      pass
-
-   print 'There are ',len(flist),' directory entries found in ',incomingFTPdir
-
-   ## File naming convention for ITL as of May 2015
-   vendorID = LSSTID.split('-',1)[1]
-   md5file = 'ID-'+vendorID+'.md5'
-   datafile = 'ID-'+vendorID+'.tar.gz'
-
-   print 'md5file:  ',md5file
-   print 'datafile: ',datafile
-
-   if md5file not in flist or datafile not in flist:
-      print '\n%ERROR: Unable to find expected files in FTP area'
-      print ' Full ftp directory listing (',incomingFTPdir,'):'
-      for file in flist:
-         print file
-         pass
-      sys.exit(1)
-      
-# Create target directory for Vendor Data (format = YYYYMMDD.HHMMSS)
-   deliveryTime = datetime.datetime.now().strftime("%Y%m%d.%H%M%S")
-   targetDir = os.path.join(vendorDir,deliveryTime)
-   print 'targetDir = ',targetDir
-   os.makedirs(targetDir)
-
-
-# md5 checksum comparison, pre- and post-ftp
-   md5file = os.path.join(incomingFTPdir,md5file)
-   datafile = os.path.join(incomingFTPdir,datafile)
-
-   md5old = open(md5file).read().split()
-   if len(md5old) == 1:                   ## ITL has changed the format of its md5 file...
-      md5old = md5old[0].upper()
-   elif len(md5old) >= 3:
-      md5old = open(md5file).read().split()[2].upper()
-   else:
-      print '\n%ERROR: Unable to parse supplied md5 file: ',md5file
-      sys.exit(1)
-      
-   md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
-   if md5old != md5new:
-      print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
-      sys.exit(1)
-      pass
-
-
-# Uncompress/untar into target directory
-   try:
-      tarfile.open(datafile,'r').extractall(targetDir)
-   except:
-      print '\n%ERROR: Failed to extractall from vendor tarball'
-      sys.exit(1)
-      pass
-
-# Create pointer to new Vendor Data for subsequent 'validator' step
-   vendorPointer = os.path.join(os.environ['PWD'],'vendorData')
-   print 'vendorPointer = ',vendorPointer
-   if os.access(vendorPointer,os.F_OK):
-      print '\n%ERROR: pointer to vendor data already exists in working directory'
-      sys.exit(1)
-      pass
-   try:
-      os.symlink(targetDir,vendorPointer)
-      print 'Link to vendor data created.'
-   except:
-      print '\n%ERROR: Unable to create link to vendorData...this should not happen.'
-      sys.exit(1)
-      pass
-
-
-# Backup this delivery and clean up incoming ftp area
-   trashDir = os.path.join(os.path.dirname(vendorDir),'FTP',vendor,deliveryTime)
-   print 'trashDir =', trashDir
-   try:
-      os.makedirs(trashDir)
-      ##################  DEV ONLY - leave files in FTP area  ####################
-      shutil.copyfile(datafile,os.path.join(trashDir,os.path.basename(datafile)))
-      shutil.copyfile(md5file,os.path.join(trashDir,os.path.basename(md5file)))
-      ##################  RE-ENABLE the following for production  ################
-      #      shutil.move(datafile,os.path.join(trashDir,os.path.basename(datafile)))
-      #      shutil.move(md5file,os.path.join(trashDir,os.path.basename(md5file)))
-   except:
-      print '\n%WARNING: Failed to cleanup incoming ftp directory'
-      pass
-
-# Register files in dataCatalog
-   targetLDirRoot = os.path.join(vendorLDir,LSSTID,deliveryTime)
-   regFiles(xxx,targetLDirRoot,deliveryTime)
-
-   pass
-
-
 
 
 ####################################################################
-###########    e2v    ##############################################
+###########    e2v or ITL   ########################################
 ####################################################################
-elif vendor == 'e2v':
+if vendor == 'e2v' or vendor == 'ITL':
 
 # Check FTP area if Vendor Data is present
 #    Require both a compressed tarball (data) and md5 checksum files
@@ -324,11 +213,11 @@ elif vendor == 'e2v':
 
    print 'There are ',len(flist),' files found in ',vendorFTPdir
 
-   ## File naming convention for e2v as of June 2015
-   ##   e2v files look like, e.g., e2v-11093-02-01.{md5,tar.bz2}
+   ## vendor ID is enforced by sensorID convention
    vendorID = LSSTID.split('-',1)[1]
 
    ## Look for data and checksum files
+   ## Standard file names are sym links to actual vendor files
    fileName = 'ID-'+vendorID
    md5file = ''
    datafile = ''
@@ -339,7 +228,7 @@ elif vendor == 'e2v':
          pass
       pass
    if len(md5file) == 0 or len(datafile) == 0:
-      print '\n%ERROR: Unable to find expected files in FTP area'
+      print '\n%ERROR: Unable to find expected data and/or checksum files in FTP area'
       print ' Full ftp directory listing (',vendorFTPdir,'):'
       for file in flist:
          print file
@@ -362,7 +251,7 @@ elif vendor == 'e2v':
    datafile = os.path.join(vendorFTPdir,datafile)
 
    md5old = open(md5file).read().split()
-   if len(md5old) == 2:             ## Current e2v standard format
+   if len(md5old) == 1 or len(md5old) == 2:      ## Current e2v and ITL practice
       md5old = md5old[0].upper()
    elif len(md5old) >= 3:
       md5old = open(md5file).read().split()[2].upper()
@@ -382,6 +271,7 @@ elif vendor == 'e2v':
 # Uncompress/untar into target directory
    print 'Uncompress and unpack tarball'
    print datetime.datetime.now()
+   sys.stdout.flush()
 
    try:
       tarfile.open(datafile,'r').extractall(vendorDir)
@@ -445,6 +335,7 @@ else:
 
 # Done.
 fini = datetime.datetime.now()
-print fini,"   Done."
+print fini,"\n\n  Producer done."
 print 'Total elapsed time = ',fini-start
+print '\n================================================================\n\n'
 sys.exit(0)
