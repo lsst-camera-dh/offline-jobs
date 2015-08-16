@@ -6,7 +6,7 @@ import siteUtils
 import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
-lambda_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
+lambda_files = siteUtils.datacatalog_glob('*_lambda_flat_*.fits',
                                           testtype='LAMBDA',
                                           imgtype='FLAT',
                                           description='Lambda files:')
