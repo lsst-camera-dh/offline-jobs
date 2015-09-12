@@ -102,15 +102,35 @@ class ItlResults(VendorResults):
         return results
     def bright_defects(self):
         job = 'bright_defects'
-        results = []
+        defects = dict(self[job].items('BrightRejection'))
+        print """
+        For the bright defects results, ITL only provides the total
+        number of rejected pixels, so set all of these to be
+        bright_pixels in amp 1 and set everything else to zero.
+        """
+        total_rejected = int(defects['brightrejectedpixels'])
+        results = [validate(job, amp=1, bright_pixels=total_rejected,
+                            bright_columns=0)]
         for amp in self.amps:
+            if amp == 1:
+                continue
             results.append(validate(job, amp=amp,
                                     bright_pixels=0, bright_columns=0))
         return results
     def dark_defects(self):
         job = 'dark_defects'
-        results = []
+        defects = dict(self[job].items('DarkRejection'))
+        print """
+        For the dark defects results, ITL only provides the total
+        number of rejected pixels, so set all of these to be
+        dark_pixels in amp 1 and set everything else to zero.
+        """
+        total_rejected = int(defects['darkrejectedpixels'])
+        results = [validate(job, amp=1, dark_pixels=total_rejected,
+                            dark_columns=0)]
         for amp in self.amps:
+            if amp == 1:
+                continue
             results.append(validate(job, amp=amp,
                                     dark_pixels=0, dark_columns=0))
         return results
@@ -118,13 +138,29 @@ class ItlResults(VendorResults):
         job = 'traps'
         results = []
         for amp in self.amps:
-            results.append(validate(job, amp=amp, num_traps=0))
+            results.append(validate(job, amp=amp, num_traps=-1))
         return results
     def dark_current(self):
         job = 'dark_current'
+        dc = dict(self[job].items('DarkSignal'))
+        print """
+        For the dark current results, ITL only provides CCD-wide
+        numbers for the current at any given percentile, so set all
+        amps to have this same value.
+        """
+        # Need to loop through DarkFrac# entries to find the 95th 
+        # percentile value.
+        index = None
+        for key in dc:
+            if key.startswith('darkfrac') and float(dc[key]) == 95.:
+                index = key[len('darkfrac'):]
+        if index is not None:
+            dc_value = float(dc['darkrate'+index])
+        else:
+            dc_value = -1  # ugly sentinel value
         results = []
         for amp in self.amps:
-            results.append(validate(job, amp=amp, dark_current_95CL=0))
+            results.append(validate(job, amp=amp, dark_current_95CL=dc_value))
         return results
     def cte(self):
         job = 'cte'
