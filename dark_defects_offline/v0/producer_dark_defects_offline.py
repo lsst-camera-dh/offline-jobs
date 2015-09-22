@@ -4,7 +4,7 @@ import siteUtils
 import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
-sflat_files = siteUtils.datacatalog_glob('*_sflat_500_flat_*.fits',
+sflat_files = siteUtils.datacatalog_glob('*_sflat_500_flat_H*.fits',
                                          testtype='SFLAT_500',
                                          imgtype='FLAT',
                                          description='Superflat files:')
