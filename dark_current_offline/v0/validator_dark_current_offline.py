@@ -6,12 +6,10 @@ import siteUtils
 
 sensor_id = siteUtils.getUnitId()
 
-dc_map_file = glob.glob('*median_dark_current.fits')[0]
-results = [lcatr.schema.fileref.make(dc_map_file)]
-
 results_file = '%s_eotest_results.fits' % sensor_id
 data = sensorTest.EOTestResults(results_file)
 
+results = []
 amps = data['AMP']
 dc95s = data['DARK_CURRENT_95']
 for amp, dc95 in zip(amps, dc95s):

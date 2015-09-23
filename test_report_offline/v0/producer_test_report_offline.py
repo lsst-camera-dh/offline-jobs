@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import shutil
+from collections import OrderedDict
 
 #  This is needed so that pylab can write to .matplotlib
 os.environ['MPLCONFIGDIR'] = os.curdir
@@ -35,8 +36,10 @@ class JsonRepackager(object):
                      ('dark_columns', 'NUM_DARK_COLUMNS'),
                      ('dark_current_95CL', 'DARK_CURRENT_95'),
                      ('num_traps', 'NUM_TRAPS'),
-                     ('cti_serial', 'CTI_SERIAL'),
-                     ('cti_parallel', 'CTI_PARALLEL'),
+                     ('cti_low_serial', 'CTI_LOW_SERIAL'),
+                     ('cti_low_parallel', 'CTI_LOW_PARALLEL'),
+                     ('cti_high_serial', 'CTI_HIGH_SERIAL'),
+                     ('cti_high_parallel', 'CTI_HIGH_PARALLEL'),
                      ('full_well', 'FULL_WELL'),
                      ('max_frac_dev', 'MAX_FRAC_DEV'),
                      ))
@@ -159,6 +162,20 @@ wl_file_path = os.path.split(wl_files[0])[0]
 plots.flat_fields(wl_file_path)
 pylab.savefig('%s_flat_fields.png' % sensor_id)
 
+# Software versions
+software_versions = OrderedDict()
+summary_lims_file = processName_dependencyGlob('summary.lims',
+                                               jobname='fe55_offline')[0]
+foo = json.loads(open(summary_lims_file).read())
+for result in foo:
+    if result['schema_name'] == 'package_versions':
+        for key, value in result.items():
+            if key == 'schema_version':
+                continue
+            if key.endswith('_version'):
+                software_versions[key] = value
+
 # Create the test report pdf.
-report = sensorTest.EOTestReport(plots, wl_file_path)
+report = sensorTest.EOTestReport(plots, wl_file_path,
+                                 software_versions=software_versions)
 report.make_pdf()

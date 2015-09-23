@@ -20,7 +20,7 @@ for band in QE:
     results.append(lcatr.schema.valid(lcatr.schema.get('qe_analysis'),
                                       band=band, QE=np.mean(QE[band])))
 
-qe_files = glob.glob('*QE.*')
+qe_files = glob.glob('*QE*.*')
 results.extend([lcatr.schema.fileref.make(item) for item in qe_files])
 
 lcatr.schema.write_file(results)

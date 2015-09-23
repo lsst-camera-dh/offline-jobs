@@ -7,10 +7,9 @@ import siteUtils
 sensor_id = siteUtils.getUnitId()
 
 results_file = '%s_eotest_results.fits' % sensor_id
-
 prnu_results = pyfits.open(results_file)['PRNU_RESULTS'].data
 
-results = [lcatr.schema.fileref.make(results_file)]
+results = []
 for wl, stdev, mean in zip(prnu_results['WAVELENGTH'], 
                            prnu_results['STDEV'], prnu_results['MEAN']):
     results.append(lcatr.schema.valid(lcatr.schema.get('prnu'),
