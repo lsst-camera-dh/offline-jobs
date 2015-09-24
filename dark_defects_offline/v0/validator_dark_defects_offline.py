@@ -2,10 +2,14 @@
 import lsst.eotest.sensor as sensorTest
 import lcatr.schema
 import siteUtils
+import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
 
 mask_file = '%s_dark_pixel_mask.fits' % sensor_id
+eotestUtils.addHeaderData(mask_file, LSST_NUM=sensor_id, TESTTYPE='SFLAT_500',
+                          DATE=eotestUtils.utc_now_isoformat(),
+                          CCD_MANU=siteUtils.getCcdVendor().upper())
 results = [lcatr.schema.fileref.make(mask_file)]
 
 eotest_results = '%s_eotest_results.fits' % sensor_id

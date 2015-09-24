@@ -2,10 +2,14 @@
 import lsst.eotest.sensor as sensorTest
 import lcatr.schema
 import siteUtils
+import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
 
 trap_file = '%s_traps.fits' % sensor_id
+eotestUtils.addHeaderData(trap_file, LSST_NUM=sensor_id, TESTTYPE='TRAP',
+                          DATE=eotestUtils.utc_now_isoformat(),
+                          CCD_MANU=siteUtils.getCcdVendor().upper())
 results = [lcatr.schema.fileref.make(trap_file)]
 
 results_file = '%s_eotest_results.fits' % sensor_id

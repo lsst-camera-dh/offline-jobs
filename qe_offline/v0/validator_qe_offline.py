@@ -5,8 +5,10 @@ import numpy as np
 import pyfits
 import lcatr.schema
 import siteUtils
+import eotestUtils
 
-results = [siteUtils.packageVersions()]
+results = [siteUtils.packageVersions(),
+           eotestUtils.eotestCalibrations()]
 
 sensor_id = siteUtils.getUnitId()
 qe_data = pyfits.open('%s_QE.fits' % sensor_id)['QE_BANDS'].data
@@ -21,6 +23,11 @@ for band in QE:
                                       band=band, QE=np.mean(QE[band])))
 
 qe_files = glob.glob('*QE*.*')
+for item in qe_files:
+    if item.endswith('.fits'):
+        eotestUtils.addHeaderData(item, LSST_NUM=sensor_id, TESTTYPE='LAMBDA',
+                                  DATE=eotestUtils.utc_now_isoformat(),
+                                  CCD_MANU=siteUtils.getCcdVendor().upper())
 results.extend([lcatr.schema.fileref.make(item) for item in qe_files])
 
 lcatr.schema.write_file(results)
