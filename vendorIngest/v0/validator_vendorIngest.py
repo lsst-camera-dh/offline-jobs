@@ -29,11 +29,13 @@ class VendorResults(object):
                     'dark_defects', 'traps', 'dark_current', 'cte',
                     'prnu', 'flat_pairs', 'ptc', 'qe_analysis')
         for analysis in analyses:
-            try:
-                exec('my_results = self.%s()' % analysis)
-                results.extend(my_results)
-            except Exception, eobj:
-                failures[analysis] = eobj
+            exec('my_results = self.%s()' % analysis)
+            results.extend(my_results)
+#            try:
+#                exec('my_results = self.%s()' % analysis)
+#                results.extend(my_results)
+#            except Exception, eobj:
+#                failures[analysis] = eobj
         if failures:
             print
             print "Failed to extract vendor results for the following:"
@@ -49,7 +51,8 @@ class ItlResults(VendorResults):
                         'dark_defects' : 'darkdefects.txt',
                         'dark_current' : 'dark.txt',
                         'read_noise' : 'gain.txt',
-                        'cte' : 'eper1.txt',
+                        'cte_low' : 'eper1.txt',
+                        'cte_high' : 'eper2.txt',
                         'traps' : 'traps.txt',
                         'flat_pairs' : 'linearity.txt',
                         'prnu' : 'prnu.txt',
@@ -163,15 +166,20 @@ class ItlResults(VendorResults):
             results.append(validate(job, amp=amp, dark_current_95CL=dc_value))
         return results
     def cte(self):
-        job = 'cte'
-        scte = dict(self[job].items('HCTE'))
-        pcte = dict(self[job].items('VCTE'))
+        job = 'cte_low'
+        scte_low = dict(self[job].items('HCTE'))
+        pcte_low = dict(self[job].items('VCTE'))
+        job = 'cte_high'
+        scte_high = dict(self[job].items('HCTE'))
+        pcte_high = dict(self[job].items('VCTE'))
         results = []
         for amp in self.amps:
             ext = '%02i' % (amp - 1)
-            results.append(validate(job, amp=amp,
-                                    cti_serial=1.-float(scte['hcte_%s' % ext]),
-                                    cti_parallel=1.-float(pcte['vcte_%s' % ext])))
+            results.append(validate('cte', amp=amp,
+                                    cti_low_serial=1.-float(scte_low['hcte_%s' % ext]),
+                                    cti_low_parallel=1.-float(pcte_low['vcte_%s' % ext]),
+                                    cti_high_serial=1.-float(scte_high['hcte_%s' % ext]),
+                                    cti_high_parallel=1.-float(pcte_high['vcte_%s' % ext])))
         return results
     def prnu(self):
         job = 'prnu'
@@ -212,7 +220,7 @@ class ItlResults(VendorResults):
         qe_results = dict((band, []) for band in self.qe_band_passes)
         for key, value in qe_data.items():
             if key.startswith('qe'):
-                tokens = [float(x.strip()) for x in value.split()]
+                tokens = [float(x.strip()) for x in value.split()[:2]]
                 wl = tokens[0]
                 qe = tokens[1]
                 for band, wl_range in self.qe_band_passes.items():
