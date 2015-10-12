@@ -29,13 +29,11 @@ class VendorResults(object):
                     'dark_defects', 'traps', 'dark_current', 'cte',
                     'prnu', 'flat_pairs', 'ptc', 'qe_analysis')
         for analysis in analyses:
-            exec('my_results = self.%s()' % analysis)
-            results.extend(my_results)
-#            try:
-#                exec('my_results = self.%s()' % analysis)
-#                results.extend(my_results)
-#            except Exception, eobj:
-#                failures[analysis] = eobj
+            try:
+                exec('my_results = self.%s()' % analysis)
+                results.extend(my_results)
+            except Exception, eobj:
+                failures[analysis] = eobj
         if failures:
             print
             print "Failed to extract vendor results for the following:"
