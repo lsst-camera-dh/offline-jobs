@@ -214,11 +214,12 @@ if vendor == 'e2v' or vendor == 'ITL':
    print 'There are ',len(flist),' files found in ',vendorFTPdir
 
    ## vendor ID is enforced by sensorID convention
-   vendorID = LSSTID.split('-',1)[1]
+   vendorID = LSSTID.split('-',1)[1]   ## 10/13/2015 unused
 
    ## Look for data and checksum files
    ## Standard file names are sym links to actual vendor files
-   fileName = 'ID-'+vendorID
+   #   fileName = 'ID-'+vendorID
+   fileName = LSSTID  ## 10/13/2015 new file naming using "LSSTID" = <vendor>-<model>-<vendorID>
    md5file = ''
    datafile = ''
    for file in flist:
