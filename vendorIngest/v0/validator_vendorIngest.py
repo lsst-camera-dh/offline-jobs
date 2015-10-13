@@ -173,7 +173,7 @@ class ItlResults(VendorResults):
         results = []
         for amp in self.amps:
             ext = '%02i' % (amp - 1)
-            results.append(validate('cte', amp=amp,
+            results.append(validate('cte_vendorIngest', amp=amp,
                                     cti_low_serial=1.-float(scte_low['hcte_%s' % ext]),
                                     cti_low_parallel=1.-float(pcte_low['vcte_%s' % ext]),
                                     cti_high_serial=1.-float(scte_high['hcte_%s' % ext]),
