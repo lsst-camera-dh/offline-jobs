@@ -6,9 +6,9 @@ producer_vendorIngest.py - jobHarness script for use by eTraveler to ingest vend
 Tentative Conventions:
 1. ITL data arrives at SLAC as ITL-<sensorID>.tar.gz along with ITL-<sensorID>.md5
 2. e2v data arrives at SLAC as e2v_<sensorID>.tar.bz2 along with e2v_<sensorID>.md5sum
-3. LSST-CAM ID for a newly arrived sensor shall be <vendor>-<vendorSerialNo>, e.g., ITL-98765
+3. LSST-CAM ID for a newly arrived sensor shall be <vendor>-<model>-<vendorSerialNo>, e.g., ITL-3800C-126
 4. New hardware must be registered in the eTraveler DB prior to running this traveler
-5. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-98765
+5. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-3800C-126
 6. eTraveler "Hardware Type" corresponds to LCATR_UNIT_TYPE ("ITL-CCD" or "e2v-CCD")
 
 =====================================================================================
@@ -17,23 +17,26 @@ Tentative Conventions:
 
 Where is everything?
 
-LSSTROOT = /nfs/farm/g/lsst/u1
 
-** Original copy of vendor delivery (maybe):
-$LSSTROOT/vendorData/FTP/<vendor>/<deliveryDate>
+** Original copy of vendor delivery
+***    Vendors push data via (s)ftp to lsst-ftp.slac.stanford.edu
+***    Space managed by vendors
+LSST-FTP = /nfs/farm/g/lsst/u2
+$LSST-FTP/<vendor>
 
 where vendor = {e2v,ITL}
 
 ** Archive copy of vendor delivery:
+LSSTROOT = /nfs/farm/g/lsst/u1
 $LSSTROOT/vendorData/FTP/<vendor>/delivery/<deliveryDate>/*.{tar.bz2, md5sum}
 
 where deliveryDate = YYYYMMDD or YYYYMMDD{a-z} if multiple deliveries on same day
 
 ** Unpacked copy of vendor delivery (after eTraveler SR-RCV-1):
-$LSSTROOT/vendorData/<vendor>/<sensorID>/<eTmode>/<JHinstance>/...
+$LSSTROOT/vendorData/<vendor>/<LSSTsensorID>/<eTmode>/<JHinstance>/...
 
 where
-  sensorID = official LSST sensorID, e.g., e2v-11093-10-04
+  LSSTsensorID = official LSST sensorID, e.g., ITL-3800C-126
 
   eTmode = {Prod, Dev}
 
