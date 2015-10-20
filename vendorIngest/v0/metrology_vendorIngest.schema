@@ -2,10 +2,13 @@
 {
     'schema_name' : 'metrology_vendorIngest',
     'schema_version' : 0,
+    'mounting_grade' : str,
+    'height_grade' : str,
     'znom' : float,
     'zmean' : float,
     'zmedian' : float,
     'zsdev' : float,
+    'flatness_grade' : str,
     'flatnesshalfband' : float,
     'flatnessfullband' : float,
     'fsdev' : float,

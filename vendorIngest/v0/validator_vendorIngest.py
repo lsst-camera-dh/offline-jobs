@@ -232,14 +232,17 @@ class ItlResults(VendorResults):
         return results
     def metrology(self):
         job = 'metrology'
+        test_results = {}
+        test_results['mounting_grade'] = dict(self[job].items('Mounting'))['grade']
         kwds = dict(self[job].items('Height'))
+        test_results['height_grade'] = kwds['grade']
         kwds.update(dict(self[job].items('Flatness')))
+        test_results['flatness_grade'] = kwds['grade']
         schema_keys = 'znom zmean zmedian zsdev flatnesshalfband flatnessfullband fsdev fmin fmax'.split()
         # Omit key/value pairs not in the schema.
-        my_kwds = {}
         for key in schema_keys:
-            my_kwds[key] = kwds[key]
-        results = [validate('metrology_vendorIngest', **my_kwds)]
+            test_results[key] = kwds[key]
+        results = [validate('metrology_vendorIngest', **test_results)]
         return results
 
 class e2vResults(VendorResults):
