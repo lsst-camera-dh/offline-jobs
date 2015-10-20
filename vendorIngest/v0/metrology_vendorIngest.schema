@@ -1,0 +1,14 @@
+# -*- python -*-
+{
+    'schema_name' : 'metrology_vendorIngest',
+    'schema_version' : 0,
+    'znom' : float,
+    'zmean' : float,
+    'zmedian' : float,
+    'zsdev' : float,
+    'flatnesshalfband' : float,
+    'flatnessfullband' : float,
+    'fsdev' : float,
+    'fmin' : float,
+    'fmax' : float
+}
