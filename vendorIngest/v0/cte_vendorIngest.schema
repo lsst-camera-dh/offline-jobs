@@ -1,0 +1,10 @@
+# -*- python -*-
+{
+    'schema_name' : 'cte_vendorIngest',
+    'schema_version' : 0,
+    'amp' : int,
+    'cti_high_serial' : float,
+    'cti_high_parallel' : float,
+    'cti_low_serial' : float,
+    'cti_low_parallel' : float
+}
