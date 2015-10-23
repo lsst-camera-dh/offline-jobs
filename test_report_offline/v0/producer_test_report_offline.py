@@ -37,9 +37,13 @@ class JsonRepackager(object):
                      ('dark_current_95CL', 'DARK_CURRENT_95'),
                      ('num_traps', 'NUM_TRAPS'),
                      ('cti_low_serial', 'CTI_LOW_SERIAL'),
+                     ('cti_low_serial_error', 'CTI_LOW_SERIAL_ERROR'),
                      ('cti_low_parallel', 'CTI_LOW_PARALLEL'),
+                     ('cti_low_parallel_error', 'CTI_LOW_PARALLEL_ERROR'),
                      ('cti_high_serial', 'CTI_HIGH_SERIAL'),
+                     ('cti_high_serial_error', 'CTI_HIGH_SERIAL_ERROR'),
                      ('cti_high_parallel', 'CTI_HIGH_PARALLEL'),
+                     ('cti_high_parallel_error', 'CTI_HIGH_PARALLEL_ERROR'),
                      ('full_well', 'FULL_WELL'),
                      ('max_frac_dev', 'MAX_FRAC_DEV'),
                      ))
