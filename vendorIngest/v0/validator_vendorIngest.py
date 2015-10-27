@@ -326,11 +326,19 @@ class e2vResults(VendorResults):
     def cte(self):
         job = 'cte'
         results = []
-        for amp, tokens in self._csv_data('CTE\*Optical\*Summary.csv'):
-            cti_parallel = 1. - float(tokens[0])
-            cti_serial = 1. - float(tokens[1])
-            results.append(validate(job, amp=amp, cti_serial=cti_serial,
-                                    cti_parallel=cti_parallel))
+        scti_low, pcti_low, scti_high, pcti_high = {}, {}, {}, {}
+        for amp, tokens in self._csv_data('CTE\*Optical\*Low_Summary.csv'):
+            pcti_low[amp] = 1. - float(tokens[0])
+            scti_low[amp] = 1. - float(tokens[1])
+        for amp, tokens in self._csv_data('CTE\*Optical\*High_Summary.csv'):
+            pcti_high[amp] = 1. - float(tokens[0])
+            scti_high[amp] = 1. - float(tokens[1])
+        for amp in self.amps:
+            results.append(validate(job, amp=amp,
+                                    cti_low_serial=scti_low[amp],
+                                    cti_low_parallel=pcti_low[amp],
+                                    cti_high_serial=scti_high[amp],
+                                    cti_high_parallel=pcti_high[amp]))
         return results
     def prnu(self):
         job = 'prnu'
