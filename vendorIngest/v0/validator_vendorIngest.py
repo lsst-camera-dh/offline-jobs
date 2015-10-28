@@ -324,7 +324,7 @@ class e2vResults(VendorResults):
                                     dark_current_95CL=dark_current))
         return results
     def cte(self):
-        job = 'cte'
+        job = 'cte_vendorIngest'
         results = []
         scti_low, pcti_low, scti_high, pcti_high = {}, {}, {}, {}
         for amp, tokens in self._csv_data('CTE\*Optical\*Low_Summary.csv'):
