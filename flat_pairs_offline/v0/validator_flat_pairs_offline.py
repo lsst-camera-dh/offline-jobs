@@ -6,12 +6,21 @@ import siteUtils
 import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
+ccd_vendor = siteUtils.getCcdVendor()
 
 det_resp_data = '%s_det_response.fits' % sensor_id
 eotestUtils.addHeaderData(det_resp_data, LSST_NUM=sensor_id, TESTTYPE='FLAT',
                           DATE=eotestUtils.utc_now_isoformat(),
                           CCD_MANU=siteUtils.getCcdVendor().upper())
 results = [lcatr.schema.fileref.make(det_resp_data)]
+
+if ccd_vendor == 'ITL':
+    # Persist detector response for special linearity dataset from ITL.
+    det_resp_data = '%s_det_response_linearity.fits' % sensor_id
+    eotestUtils.addHeaderData(det_resp_data, LSST_NUM=sensor_id, TESTTYPE='FLAT',
+                              DATE=eotestUtils.utc_now_isoformat(),
+                              CCD_MANU=siteUtils.getCcdVendor().upper())
+    results = [lcatr.schema.fileref.make(det_resp_data)]
 
 results_file = '%s_eotest_results.fits' % sensor_id
 data = sensorTest.EOTestResults(results_file)

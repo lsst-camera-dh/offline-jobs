@@ -134,15 +134,19 @@ ptc_file = processName_dependencyGlob('%s_ptc.fits' % sensor_id,
 plots.ptcs(ptc_file=ptc_file)
 pylab.savefig('%s_ptcs.png' % sensor_id)
 
-# Linearity plots
 detresp_file = processName_dependencyGlob('%s_det_response.fits' % sensor_id,
                                           jobname='flat_pairs_offline')[0]
-plots.linearity(ptc_file=ptc_file, detresp_file=detresp_file)
-pylab.savefig('%s_linearity.png' % sensor_id)
-
 # Full well plots
 plots.full_well(ptc_file=ptc_file, detresp_file=detresp_file)
 pylab.savefig('%s_full_well.png' % sensor_id)
+
+# Linearity plots
+if siteUtils.getCcdVendor() == 'ITL':
+    # Use special linearity dataset for ITL data
+    detresp_file = processName_dependencyGlob('%s_det_response_linearity.fits' % sensor_id,
+                                              jobname='flat_pairs_offline')[0]
+plots.linearity(detresp_file=detresp_file)
+pylab.savefig('%s_linearity.png' % sensor_id)
 
 # System Gain per segment
 plots.gains()
