@@ -143,8 +143,12 @@ pylab.savefig('%s_full_well.png' % sensor_id)
 # Linearity plots
 if siteUtils.getCcdVendor() == 'ITL':
     # Use special linearity dataset for ITL data
-    detresp_file = processName_dependencyGlob('%s_det_response_linearity.fits' % sensor_id,
-                                              jobname='flat_pairs_offline')[0]
+    try:
+        detresp_file = processName_dependencyGlob('%s_det_response_linearity.fits' % sensor_id,
+                                                  jobname='flat_pairs_offline')[0]
+    except:
+        pass
+
 plots.linearity(detresp_file=detresp_file)
 pylab.savefig('%s_linearity.png' % sensor_id)
 

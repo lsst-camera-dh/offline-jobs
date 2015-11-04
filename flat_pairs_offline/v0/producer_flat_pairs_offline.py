@@ -20,9 +20,15 @@ task.run(sensor_id, flat_files, mask_files, gains)
 if ccd_vendor == 'ITL':
     #
     # Perform linearity analysis using special dataset from ITL
-    flat_files = siteUtils.datacatalog_glob('*_linearity_flat*.fits',
-                                            testtype='LINEARITY',
-                                            imgtype='FLAT',
-                                            description='ITL linearity files:')
-    task = sensorTest.LinearityTask()
-    task.run(sensor_id, flat_files, mask_files, gains)
+    try:
+        flat_files = siteUtils.datacatalog_glob('*_linearity_flat*.fits',
+                                                testtype='LINEARITY',
+                                                imgtype='FLAT',
+                                                description='ITL linearity files:')
+        task = sensorTest.LinearityTask()
+        task.run(sensor_id, flat_files, mask_files, gains)
+    except:
+        # Unconditionally skip this if there are no special linearity
+        # files, e.g., if analyzing TS3 data or ITL datasets
+        # pre-dating the special dataset.
+        pass
