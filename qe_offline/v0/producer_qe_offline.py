@@ -12,13 +12,16 @@ lambda_files = siteUtils.datacatalog_glob('*_lambda_flat_*.fits',
                                           description='Lambda files:')
 
 #
-# Check if file orginates from e2v; if so, set e2v_data flag.
+# Check if frames orginate from one of the vendors.  If so, assume
+# MONDIODE keyword contains incident power and use that in the QeTask.
 #
 try:
-    e2v_data = pyfits.open(lambda_files[0])[0].header['ORIGIN'].find('e2v') != -1
-    print "analyzing QE data from e2v"
+    header = pyfits.open(lambda_files[0])[0].header
+    vendor_data = ((header['ORIGIN'].find('e2v') != -1) or
+                   (header['ORIGIN'].find('UAITL') != -1))
+    
 except:
-    e2v_data = False
+    vendor_data = False
 
 # The photodiode ratio file for BNL data.
 # @todo Set this to the correct file for production runs.
@@ -29,4 +32,4 @@ gains = eotestUtils.getSensorGains(jobname='fe55_offline')
 
 task = sensorTest.QeTask()
 task.run(sensor_id, lambda_files, pd_ratio_file, mask_files, gains,
-         e2v_data=e2v_data)
+         vendor_data=vendor_data)
