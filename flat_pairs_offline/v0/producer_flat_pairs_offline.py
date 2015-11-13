@@ -25,8 +25,9 @@ if ccd_vendor == 'ITL':
                                                 testtype='LINEARITY',
                                                 imgtype='FLAT',
                                                 description='ITL linearity files:')
-        task = sensorTest.LinearityTask()
-        task.run(sensor_id, flat_files, mask_files, gains)
+        if flat_files:
+            task = sensorTest.LinearityTask()
+            task.run(sensor_id, flat_files, mask_files, gains)
     except:
         # Unconditionally skip this if there are no special linearity
         # files, e.g., if analyzing TS3 data or ITL datasets
