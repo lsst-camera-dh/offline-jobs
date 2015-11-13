@@ -152,6 +152,9 @@ if siteUtils.getCcdVendor() == 'ITL':
 plots.linearity(detresp_file=detresp_file)
 pylab.savefig('%s_linearity.png' % sensor_id)
 
+plots.linearity_resids(detresp_file=detresp_file)
+pylab.savefig('%s_linearity_resids.png' % sensor_id)
+
 # System Gain per segment
 plots.gains()
 pylab.savefig('%s_gains.png' % sensor_id)
