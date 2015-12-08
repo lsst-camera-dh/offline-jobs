@@ -31,8 +31,7 @@ class registry(object):
         self.dryrun = dryrun
 
         ## RESTful interface to dataCatalog
-        #        self.dcVersion = '0.3'
-        self.dcVersion = '0.4' # switch 12/4/2015
+        self.dcVersion = None
         self.client = None
 
         ## Controls
@@ -57,17 +56,13 @@ class registry(object):
     def init(self):
         """initialize the RESTful interface to the dataCatalog"""
         if self.client != None: return
-            #        print 'Initializing RESTful dataCatalog interface version ',self.dcVersion
         print 'Initializing RESTful dataCatalog interface'
-        dc1 = '/afs/slac.stanford.edu/u/gl/srs/datacat/dev/'+self.dcVersion+'/lib'
-        #sys.path.append(dc1)  # This should be available in execution environment
-        from datacat import Client
-        from datacat.auth import HMACAuthSRS
-        url = 'http://srs.slac.stanford.edu/datacat-v'+self.dcVersion+'/r'
-        key_id = "2299c5cc-bbba-4009-8ea9-8ec61c7fb13d"
-        secret_key = "pcda/8JUnCsK7vSENGxP3zMjbdaIUIeOXpBF8PlHXvQ6GNzJ4d4vBghyHHCUOZ+D14LBxMGRqy3aphk5M2LJ1w=="
-        auth_strategy = HMACAuthSRS(key_id=key_id, secret_key=secret_key, url=url)
-        self.client = Client(url, auth_strategy=auth_strategy)
+
+        import datacat
+        config_path = os.path.join(os.getenv('DATACAT_CONFIG','/nfs/farm/g/lsst/u1/software/datacat'),'config.cfg')
+        self.dcVersion = datacat.__version__
+        self.client = datacat.client_from_config_file(config_path)
+
         return
 
 
