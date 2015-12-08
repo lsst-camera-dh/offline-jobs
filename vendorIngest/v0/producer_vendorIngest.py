@@ -233,6 +233,7 @@ if vendor == 'e2v' or vendor == 'ITL':
       pass
    if len(md5file) == 0 or len(datafile) == 0:
       print '\n%ERROR: Unable to find expected data and/or checksum files in FTP area'
+      print ' Filename = ',fileName
       print ' Full ftp directory listing (',vendorFTPdir,'):'
       for file in flist:
          print file

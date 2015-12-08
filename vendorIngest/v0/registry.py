@@ -31,7 +31,8 @@ class registry(object):
         self.dryrun = dryrun
 
         ## RESTful interface to dataCatalog
-        self.dcVersion = '0.3'
+        #        self.dcVersion = '0.3'
+        self.dcVersion = '0.4' # switch 12/4/2015
         self.client = None
 
         ## Controls
@@ -56,9 +57,10 @@ class registry(object):
     def init(self):
         """initialize the RESTful interface to the dataCatalog"""
         if self.client != None: return
-        print 'Initializing RESTful dataCatalog interface version ',self.dcVersion
+            #        print 'Initializing RESTful dataCatalog interface version ',self.dcVersion
+        print 'Initializing RESTful dataCatalog interface'
         dc1 = '/afs/slac.stanford.edu/u/gl/srs/datacat/dev/'+self.dcVersion+'/lib'
-        sys.path.append(dc1)
+        #sys.path.append(dc1)  # This should be available in execution environment
         from datacat import Client
         from datacat.auth import HMACAuthSRS
         url = 'http://srs.slac.stanford.edu/datacat-v'+self.dcVersion+'/r'
@@ -190,7 +192,7 @@ class registry(object):
 
         ## Folder already exists, decide how to handle this registration request
         if not self.doDC(self.client.exists, dcLoc):
-            if self.debug or not self.quiet: print 'File not registered: fresh registration'
+            if self.debug or not self.quiet: print 'File not previously registered: fresh registration'
             self.doDC(self.client.create_dataset, dcFolder, datasetName, dType, fType, site=site, resource=fn, versionMetadata=metaData)
             self.numRegistered += 1
         else:
