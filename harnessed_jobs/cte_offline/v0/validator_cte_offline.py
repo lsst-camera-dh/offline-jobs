@@ -1,12 +1,22 @@
 #!/usr/bin/env python
+import glob
 import lsst.eotest.sensor as sensorTest
 import lcatr.schema
 import siteUtils
+import eotestUtils
 
 sensor_id = siteUtils.getUnitId()
+
+superflats = glob.glob('%(sensor_id)s_superflat_*.fits' % locals())
+for item in superflats:
+    eotestUtils.addHeaderData(item, FILENAME=item,
+                              DATE=eotestUtils.utc_now_isoformat())
+results = [lcatr.schema.fileref.make(x) for x in superflats]
+
 results_file = '%s_eotest_results.fits' % sensor_id
 data = sensorTest.EOTestResults(results_file)
 amps = data['AMP']
+
 cti_high_serial = data['CTI_HIGH_SERIAL']
 cti_high_serial_error = data['CTI_HIGH_SERIAL_ERROR']
 cti_high_parallel = data['CTI_HIGH_PARALLEL']
@@ -16,7 +26,7 @@ cti_low_serial = data['CTI_LOW_SERIAL']
 cti_low_serial_error = data['CTI_LOW_SERIAL_ERROR']
 cti_low_parallel = data['CTI_LOW_PARALLEL']
 cti_low_parallel_error = data['CTI_LOW_PARALLEL_ERROR']
-results = []
+
 for values in zip(amps,
                   cti_high_serial, cti_high_serial_error,
                   cti_high_parallel, cti_high_parallel_error,

@@ -12,6 +12,10 @@ eotestUtils.addHeaderData(mask_file, LSST_NUM=sensor_id, TESTTYPE='SFLAT_500',
                           CCD_MANU=siteUtils.getCcdVendor().upper())
 results = [lcatr.schema.fileref.make(mask_file)]
 
+superflat = '%s_median_sflat.fits' % sensor_id
+eotestUtils.addHeaderData(superflat, DATE=eotestUtils.utc_now_isoformat())
+results.append(lcatr.schema.fileref.make(superflat))
+
 eotest_results = '%s_eotest_results.fits' % sensor_id
 data = sensorTest.EOTestResults(eotest_results)
 amps = data['AMP']
