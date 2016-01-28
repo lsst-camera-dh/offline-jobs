@@ -59,7 +59,11 @@ class registry(object):
         print 'Initializing RESTful dataCatalog interface'
 
         import datacat
-        config_path = os.path.join(os.getenv('DATACAT_CONFIG','/nfs/farm/g/lsst/u1/software/datacat'),'config.cfg')
+        config_path = os.getenv('DATACAT_CONFIG')
+        if not os.access(config_path,os.R_OK):
+            print "\n\n$DATACAT_CONFIG does not exist.  Attempting fall-back config..."
+            config_path = '/nfs/farm/g/lsst/u1/software/datacat/config.cfg'
+            pass
         self.dcVersion = datacat.__version__
         self.client = datacat.client_from_config_file(config_path)
 

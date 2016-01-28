@@ -4,8 +4,6 @@
 producer_vendorIngest.py - jobHarness script for use by eTraveler to ingest vendor data
 
 Tentative Conventions:
-1. ITL data arrives at SLAC as ITL-<sensorID>.tar.gz along with ITL-<sensorID>.md5
-2. e2v data arrives at SLAC as e2v_<sensorID>.tar.bz2 along with e2v_<sensorID>.md5sum
 3. LSST-CAM ID for a newly arrived sensor shall be <vendor>-<model>-<vendorSerialNo>, e.g., ITL-3800C-126
 4. New hardware must be registered in the eTraveler DB prior to running this traveler
 5. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-3800C-126
@@ -24,7 +22,7 @@ Where is everything?
 LSST-FTP = /nfs/farm/g/lsst/u2
 $LSST-FTP/<vendor>
 
-where vendor = {e2v,ITL}
+where vendor = {e2v,E2V,ITL}
 
 ** Archive copy of vendor delivery:
 LSSTROOT = /nfs/farm/g/lsst/u1
@@ -198,9 +196,9 @@ def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
 
 
 ####################################################################
-###########    e2v or ITL   ########################################
+###########    e2v or E2V or ITL   ########################################
 ####################################################################
-if vendor == 'e2v' or vendor == 'ITL':
+if vendor == 'e2v' or vendor == 'E2V' or vendor == 'ITL':
 
 # Check FTP area if Vendor Data is present
 #    Require both a compressed tarball (data) and md5 checksum files
