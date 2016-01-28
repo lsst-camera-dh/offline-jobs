@@ -42,7 +42,7 @@ class VendorFitsTranslator(object):
         if os.path.relpath(outfile) not in self.outfiles:
             if verbose:
                 print "writing", outfile
-            hdulist.writeto(outfile, checksum=True)
+            hdulist.writeto(outfile, checksum=True, output_verify='ignore')
             self.outfiles.append(os.path.relpath(outfile))
     def _setAmpGeom(self, hdulist):
         detxsize = 8*hdulist[1].header['NAXIS1']
@@ -291,7 +291,8 @@ class e2vFitsTranslator(VendorFitsTranslator):
         hdulist[0].header['CCD_SERN'] = hdulist[0].header['DEV_ID']
         hdulist[0].header['EXPTIME'] = exptime
         hdulist[0].header['MONOWL'] = hdulist[0].header['WAVELEN']
-        if hdulist[0].header['LIGHTPOW'] != 0:
+            
+        if test_type == 'lambda':
             hdulist[0].header['MONDIODE'] = hdulist[0].header['LIGHTPOW']
         else:
             # This is so that the flat pairs analysis can proceed
