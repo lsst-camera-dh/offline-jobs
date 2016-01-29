@@ -42,7 +42,7 @@ class VendorFitsTranslator(object):
         if os.path.relpath(outfile) not in self.outfiles:
             if verbose:
                 print "writing", outfile
-            hdulist.writeto(outfile, checksum=True, output_verify='ignore')
+            hdulist.writeto(outfile, checksum=True, output_verify='fix')
             self.outfiles.append(os.path.relpath(outfile))
     def _setAmpGeom(self, hdulist):
         detxsize = 8*hdulist[1].header['NAXIS1']
@@ -293,17 +293,32 @@ class e2vFitsTranslator(VendorFitsTranslator):
         hdulist[0].header['MONOWL'] = hdulist[0].header['WAVELEN']
             
         if test_type == 'lambda':
+            # Let this fail if LIGHTPOW is set with an invalid value, 
+            # i.e., an unquoted NaN.
             hdulist[0].header['MONDIODE'] = hdulist[0].header['LIGHTPOW']
         else:
             # This is so that the flat pairs analysis can proceed
             # using the exposure time as a proxy for the incident
             # flux.
-            hdulist[0].header['MONDIODE'] = 1.  
+            del hdulist[0].header['MONDIODE']
+            hdulist[0].header['MONDIODE'] = 1.
+            #
+            # If LIGHTPOW is set, ensure that it has a valid value.
+            #
+            try:
+                hdulist[0].header['LIGHTPOW']
+            except pyfits.verify.VerifyError:
+                del hdulist[0].header['LIGHTPOW']
+                hdulist[0].header['LIGHTPOW'] = ''  # empty string
+
         hdulist[0].header['CCDTEMP'] = hdulist[0].header['TEMP_MEA']
         hdulist[0].header['TESTTYPE'] = test_type.upper()
         hdulist[0].header['IMGTYPE'] = image_type.upper()
         self._setAmpGeom(hdulist)
-        self._writeFile(hdulist, locals(), verbose=verbose)
+        # e2v has added extensions that are improperly formatted after
+        # the image extension for the 16th segment.  We don't use
+        # those extensions so omit them to avoid write errors.
+        self._writeFile(hdulist[:17], locals(), verbose=verbose)
     def fe55(self, pattern='*_xray_xray_*.fits', time_stamp=None,
              verbose=True):
         return self._processFiles('fe55', 'fe55', pattern, 
