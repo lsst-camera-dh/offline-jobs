@@ -16,7 +16,7 @@ for amp, dc95 in zip(amps, dc95s):
     results.append(lcatr.schema.valid(lcatr.schema.get('dark_current'),
                                       amp=amp, dark_current_95CL=dc95))
 
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 lcatr.schema.write_file(results)
 lcatr.schema.validate_file()

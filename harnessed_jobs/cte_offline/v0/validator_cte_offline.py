@@ -42,7 +42,7 @@ for values in zip(amps,
                                       cti_low_serial_error=values[6],
                                       cti_low_parallel=values[7],
                                       cti_low_parallel_error=values[8]))
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 lcatr.schema.write_file(results)
 lcatr.schema.validate_file()

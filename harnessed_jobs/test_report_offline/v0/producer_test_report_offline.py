@@ -99,7 +99,8 @@ total_num, rolloff_mask = sensorTest.pixel_counts(wl_files[0])
 repackager = JsonRepackager()
 repackager.eotest_results.add_ccd_result('TOTAL_NUM_PIXELS', total_num)
 repackager.eotest_results.add_ccd_result('ROLLOFF_MASK_PIXELS', rolloff_mask)
-repackager.process_files(processName_dependencyGlob('summary.lims'))
+summary_files = processName_dependencyGlob('summary.lims')
+repackager.process_files(summary_files)
 repackager.write(results_file)
 
 append_prnu(results_file, processName_dependencyGlob(results_file,
@@ -117,6 +118,7 @@ except IndexError:
 
 plots = sensorTest.EOTestPlots(sensor_id, results_file=results_file,
                                xtalk_file=xtalk_file)
+plots.specs.add_job_ids(summary_files)
 
 # Fe55 flux distribution fits
 fe55_file = processName_dependencyGlob('%s_psf_results*.fits' % sensor_id,

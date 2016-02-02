@@ -37,7 +37,7 @@ for amp, full_well, max_frac_dev in zip(amps, full_well_data,
     results.append(lcatr.schema.valid(lcatr.schema.get('flat_pairs'),
                                       amp=amp, full_well=full_well,
                                       max_frac_dev=max_frac_dev))
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 lcatr.schema.write_file(results)
 lcatr.schema.validate_file()

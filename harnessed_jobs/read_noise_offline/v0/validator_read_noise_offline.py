@@ -23,7 +23,7 @@ for amp, read_noise, system_noise, total_noise in zip(amps, read_noise_data,
                                       system_noise=system_noise,
                                       total_noise=total_noise))
 
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 files = glob.glob('*read_noise?*.fits')
 for fitsfile in files:

@@ -46,7 +46,7 @@ for amp, gain_value, gain_error, sigma in zip(amps, gain_data, gain_errors,
                                       gain_error=gain_error,
                                       psf_sigma=sigma))
 
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 results.extend([lcatr.schema.fileref.make(x) for x in output_files])
 
