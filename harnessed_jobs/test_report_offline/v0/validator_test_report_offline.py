@@ -17,7 +17,7 @@ results.extend([lcatr.schema.fileref.make(item) for item in png_files])
 test_report = '%s_eotest_report.pdf' % sensor_id
 results.append(lcatr.schema.fileref.make(test_report))
 
-results.append(siteUtils.packageVersions())
+results.extend(siteUtils.jobInfo())
 
 lcatr.schema.write_file(results)
 lcatr.schema.validate_file()

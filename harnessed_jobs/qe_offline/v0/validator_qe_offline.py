@@ -7,8 +7,8 @@ import lcatr.schema
 import siteUtils
 import eotestUtils
 
-results = [siteUtils.packageVersions(),
-           eotestUtils.eotestCalibrations()]
+results = [eotestUtils.eotestCalibrations()]
+results.extend(siteUtils.jobInfo())
 
 sensor_id = siteUtils.getUnitId()
 qe_data = pyfits.open('%s_QE.fits' % sensor_id)['QE_BANDS'].data
