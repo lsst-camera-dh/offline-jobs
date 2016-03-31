@@ -269,9 +269,9 @@ class e2vResults(VendorResults):
         job = 'fe55_analysis'
         gains = {}
         psf_sigmas = {}
-        for amp, tokens in self._csv_data('Gain\*X-Ray\*_Summary.csv'):
+        for amp, tokens in self._csv_data('\*Gain\*X-Ray\*_Summary\*.csv'):
             gains[amp] = float(tokens[0])
-        for amp, tokens in self._csv_data('PSF\*_Summary.csv'):
+        for amp, tokens in self._csv_data('\*PSF\*_Summary\*.csv'):
             psf_sigmas[amp] = float(tokens[0])
         results = []
         for amp in self.amps:
@@ -282,7 +282,7 @@ class e2vResults(VendorResults):
     def read_noise(self):
         job = 'read_noise'
         results = []
-        for amp, tokens in self._csv_data('Noise\*Multiple\*Samples\*Summary.csv'):
+        for amp, tokens in self._csv_data('\*Noise\*Multiple\*Samples\*Summary\*.csv'):
             read_noise = float(tokens[1])
             total_noise = float(tokens[3])
             system_noise = np.sqrt(total_noise**2 - read_noise**2)
@@ -293,7 +293,7 @@ class e2vResults(VendorResults):
     def bright_defects(self):
         job = 'bright_defects'
         results = []
-        for amp, tokens in self._csv_data('Darkness_Summary.csv'):
+        for amp, tokens in self._csv_data('\*Darkness_Summary\*.csv'):
             bright_pixels = int(tokens[1])
             bright_columns = int(tokens[3])
             results.append(validate(job, amp=amp, bright_pixels=bright_pixels,
@@ -302,7 +302,7 @@ class e2vResults(VendorResults):
     def dark_defects(self):
         job = 'dark_defects'
         results = []
-        for amp, tokens in self._csv_data('PRDefs_Summary.csv'):
+        for amp, tokens in self._csv_data('\*PRDefs_Summary\*.csv'):
             dark_pixels = int(tokens[-2])
             dark_columns = int(tokens[-3])
             results.append(validate(job, amp=amp, dark_pixels=dark_pixels,
@@ -311,26 +311,26 @@ class e2vResults(VendorResults):
     def traps(self):
         job = 'traps'
         results = []
-        for amp, tokens in self._csv_data('TrapsPP_Summary.csv'):
+        for amp, tokens in self._csv_data('\*TrapsPP_Summary\*.csv'):
             num_traps = int(tokens[0])
             results.append(validate(job, amp=amp, num_traps=num_traps))
         return results
     def dark_current(self):
         job = 'dark_current'
         results = []
-        for amp, tokens in self._csv_data('Darkness_Summary.csv'):
+        for amp, tokens in self._csv_data('\*Darkness_Summary\*.csv'):
             dark_current = float(tokens[0])
-            results.append(validate(job, amp=amp, 
+            results.append(validate(job, amp=amp,
                                     dark_current_95CL=dark_current))
         return results
     def cte(self):
         job = 'cte_vendorIngest'
         results = []
         scti_low, pcti_low, scti_high, pcti_high = {}, {}, {}, {}
-        for amp, tokens in self._csv_data('CTE\*Optical\*Low_Summary.csv'):
+        for amp, tokens in self._csv_data('\*CTE\*Optical\*Low_Summary\*.csv'):
             pcti_low[amp] = 1. - float(tokens[0])
             scti_low[amp] = 1. - float(tokens[1])
-        for amp, tokens in self._csv_data('CTE\*Optical\*High_Summary.csv'):
+        for amp, tokens in self._csv_data('\*CTE\*Optical\*High_Summary\*.csv'):
             pcti_high[amp] = 1. - float(tokens[0])
             scti_high[amp] = 1. - float(tokens[1])
         for amp in self.amps:
@@ -343,7 +343,7 @@ class e2vResults(VendorResults):
     def prnu(self):
         job = 'prnu'
         results = []
-        for wl, tokens in self._csv_data('PRNU_Summary.csv',
+        for wl, tokens in self._csv_data('\*PRNU_Summary\*.csv',
                                          label='Wavelength'):
             prnu_percent = float(tokens[0])
             results.append(validate(job, wavelength=wl,
@@ -352,7 +352,7 @@ class e2vResults(VendorResults):
     def flat_pairs(self):
         job = 'flat_pairs'
         results = []
-        for amp, tokens in self._csv_data('FWC\*Multiple\*Image\*Summary.csv'):
+        for amp, tokens in self._csv_data('\*FWC\*Multiple\*Image\*Summary\*.csv'):
             full_well = float(tokens[0])
             max_frac_dev = float(tokens[1])
             results.append(validate(job, amp=amp,
@@ -363,7 +363,7 @@ class e2vResults(VendorResults):
         return []
     def qe_analysis(self):
         job = 'qe_analysis'
-        subpath = 'QE_Summary.csv'
+        subpath = '\*QE_Summary\*.csv'
         command = 'find %s/ -name %s -print' % (self.rootdir, subpath)
         find_results = subprocess.check_output(command, shell=True)
         csv_file = find_results.split('\n')[0]
@@ -371,7 +371,6 @@ class e2vResults(VendorResults):
         for line in open(csv_file):
             tokens = line.split(',')
             if tokens[0] == 'Amp':
-#                wls = [float(x.strip()) for x in tokens[1:]]
                 wls = []
                 for item in tokens[1:]:
                     try:
@@ -379,7 +378,6 @@ class e2vResults(VendorResults):
                     except:
                         wls.append(None)
             else:
-#                values = [float(x.strip()) for x in tokens[1:]]
                 values = []
                 for item in tokens[1:]:
                     try:
