@@ -21,7 +21,7 @@ results = [lcatr.schema.fileref.make(results_file,
 
 png_files = glob.glob('*.png')
 results.extend([lcatr.schema.fileref.make(item,
-                                          metadata=md(DATA_PRODUCT='PNG_FILE'))
+                                          metadata=md(DATA_PRODUCT=eotestUtils.png_data_product(item, sensor_id)))
                 for item in png_files])
 
 
