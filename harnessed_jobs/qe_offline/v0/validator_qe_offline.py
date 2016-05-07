@@ -14,9 +14,15 @@ sensor_id = siteUtils.getUnitId()
 qe_data = pyfits.open('%s_QE.fits' % sensor_id)['QE_BANDS'].data
 QE = OrderedDict((band, []) for band in qe_data.field('BAND'))
 for amp in range(1, 17):
-    values = qe_data.field('AMP%02i' % amp)
-    for band, value in zip(QE, values):
-        QE[band].append(value)
+    try:
+        values = qe_data.field('AMP%02i' % amp)
+        for band, value in zip(QE, values):
+            QE[band].append(value)
+    except KeyError:
+        # If dealing with WFS data, there will be only only 8 amps and
+        # a KeyError exception will be raised when data for amp 9 is
+        # accessed.
+        break
 
 for band in QE:
     results.append(lcatr.schema.valid(lcatr.schema.get('qe_analysis'),
