@@ -44,7 +44,8 @@ class VendorFitsTranslator(object):
                 print "writing", outfile
             hdulist.writeto(outfile, checksum=True, output_verify='fix')
             self.outfiles.append(os.path.relpath(outfile))
-    def _setAmpGeom(self, hdulist):
+    @staticmethod
+    def _setAmpGeom(hdulist):
         detxsize = 8*hdulist[1].header['NAXIS1']
         detysize = 2*hdulist[1].header['NAXIS2']
         ampGeom = sensorTest.AmplifierGeometry(detxsize=detxsize,
@@ -69,7 +70,7 @@ class VendorFitsTranslator(object):
         for iframe, infile in enumerate(infiles):
             if verbose:
                 print "processing", os.path.basename(infile)
-            if (skip_zero_exptime and 
+            if (skip_zero_exptime and
                 pyfits.open(infile)[0].header['EXPTIME'] == 0):
                 if verbose:
                     print "skipping zero exposure frame."
@@ -80,11 +81,13 @@ class VendorFitsTranslator(object):
             self.translate(infile, test_type, image_type, seqno,
                            time_stamp=time_stamp, verbose=verbose)
         return time_stamp
-    def lambda_scan(self, pattern, time_stamp=None, verbose=True,
+    def lambda_scan(self, pattern=None, time_stamp=None, verbose=True,
                     monowl_keyword='MONOWL'):
+        if pattern is None:
+            raise ValueError("A pattern argument or keyword is required.")
         if time_stamp is None:
             time_stamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        wl = lambda x : pyfits.open(x)[0].header[monowl_keyword]
+        wl = lambda x: pyfits.open(x)[0].header[monowl_keyword]
         infiles = self._infiles(pattern)
         for infile in infiles:
             if verbose:
@@ -93,7 +96,7 @@ class VendorFitsTranslator(object):
             self.translate(infile, 'lambda', 'flat', seqno,
                            time_stamp=time_stamp, verbose=verbose)
         return time_stamp
-        
+
 class ItlFitsTranslator(VendorFitsTranslator):
     """
     FITS Translator for ITL data.
@@ -118,7 +121,6 @@ class ItlFitsTranslator(VendorFitsTranslator):
         lsst_num = self.lsst_num
         hdulist[0].header['LSST_NUM'] = lsst_num
         hdulist[0].header['CCD_MANU'] = 'ITL'
-        #hdulist[0].header['CCD_SERN'] = 
         hdulist[0].header['MONOWL'] = float(hdulist[0].header['MONOWL'])
         hdulist[0].header['TESTTYPE'] = test_type.upper()
         hdulist[0].header['IMGTYPE'] = image_type.upper()
@@ -142,11 +144,11 @@ class ItlFitsTranslator(VendorFitsTranslator):
         if time_stamp is None:
             time_stamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         infiles = self._infiles(os.path.join(self.rootdir, pattern))
-        image_type = lambda x : pyfits.open(x)[0].header['OBJECT']
+        image_type = lambda x: pyfits.open(x)[0].header['OBJECT']
         infiles = dict([(image_type(item), item) for item in infiles])
         self.translate(infiles['pocketpump first bias'], 'trap', 'bias', '000',
                        time_stamp=time_stamp, verbose=verbose)
-        
+
         # Handle the various ways ITL specifies the pocket pumped
         # exposure in their data packages.
         try:
@@ -154,10 +156,10 @@ class ItlFitsTranslator(VendorFitsTranslator):
                            time_stamp=time_stamp, verbose=verbose)
         except KeyError:
             try:
-                self.translate(infiles['pocketpumped flat'], 'trap', 'ppump', 
+                self.translate(infiles['pocketpumped flat'], 'trap', 'ppump',
                                '000', time_stamp=time_stamp, verbose=verbose)
             except KeyError:
-                self.translate(infiles['pocketpump flat'], 'trap', 'ppump', 
+                self.translate(infiles['pocketpump flat'], 'trap', 'ppump',
                                '000', time_stamp=time_stamp, verbose=verbose)
 
         self.translate(infiles['pocketpump second bias'], 'trap', 'bias', '001',
@@ -166,19 +168,18 @@ class ItlFitsTranslator(VendorFitsTranslator):
                        'trap', 'flat', '000',
                        time_stamp=time_stamp, verbose=verbose)
         return time_stamp
-    def sflat_500_high(self, pattern='superflat2/*_superflat.*.fits', 
+    def sflat_500_high(self, pattern='superflat2/*_superflat.*.fits',
                        time_stamp=None, verbose=True):
         return self._processFiles('sflat_500', 'flat', pattern,
                                   time_stamp=time_stamp, verbose=verbose,
                                   seqno_prefix='H')
-    def sflat_500_low(self, pattern='superflat1/*_superflat.*.fits', 
+    def sflat_500_low(self, pattern='superflat1/*_superflat.*.fits',
                       time_stamp=None, verbose=True):
         return self._processFiles('sflat_500', 'flat', pattern,
                                   time_stamp=time_stamp, verbose=verbose,
                                   seqno_prefix='L')
-    def spot(self, pattern='', time_stamp=None,
-             verbose=True):
-        raise NotImplemented("ITL spot dataset translation not implemented.")
+    def spot(self, pattern='', time_stamp=None, verbose=True):
+        raise NotImplementedError("ITL spot dataset translation not implemented.")
     def linearity(self, pattern='linearity/*linearity.*.fits', time_stamp=None,
                   verbose=True):
         return self._processFiles('linearity', 'flat', pattern,
@@ -187,7 +188,7 @@ class ItlFitsTranslator(VendorFitsTranslator):
              verbose=True):
         if time_stamp is None:
             time_stamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        exptime = lambda x : pyfits.open(x)[0].header['EXPTIME']
+        exptime = lambda x: pyfits.open(x)[0].header['EXPTIME']
         infiles = self._infiles(pattern)
         # Group files by exposure time and therefore into pairs, presumably.
         groups = OrderedDict()
@@ -210,7 +211,7 @@ class ItlFitsTranslator(VendorFitsTranslator):
         return time_stamp
 
     def lambda_scan(self, pattern='qe/*_qe.*.fits', time_stamp=None,
-                    verbose=True):
+                    verbose=True, monowl_keyword='MONOWL'):
         time_stamp = super(ItlFitsTranslator, self).lambda_scan(pattern,
                                                                 time_stamp=time_stamp,
                                                                 verbose=verbose)
@@ -220,13 +221,14 @@ class ItlFitsTranslator(VendorFitsTranslator):
         files = subprocess.check_output(command, shell=True).split()
         for item in files:
             fits_obj = pyfits.open(item)
-            wl = int(fits_obj[0].header['MONOWL'])
+            wl = int(fits_obj[0].header[monowl_keyword])
             fits_obj[0].header['MONDIODE_ORIG'] = fits_obj[0].header['MONDIODE']
             fits_obj[0].header['MONDIODE'] = flux[wl]
             fits_obj.writeto(item, clobber=True)
         return time_stamp
 
-    def _compute_incident_flux(self):
+    @staticmethod
+    def _compute_incident_flux():
         #
         # Read in qe.txt file and compute the incident fluxes as a function
         # of wavelength.  In that file, there are two notes on computing
@@ -291,9 +293,9 @@ class e2vFitsTranslator(VendorFitsTranslator):
         hdulist[0].header['CCD_SERN'] = hdulist[0].header['DEV_ID']
         hdulist[0].header['EXPTIME'] = exptime
         hdulist[0].header['MONOWL'] = hdulist[0].header['WAVELEN']
-            
+
         if test_type == 'lambda':
-            # Let this fail if LIGHTPOW is set with an invalid value, 
+            # Let this fail if LIGHTPOW is set with an invalid value,
             # i.e., an unquoted NaN.
             hdulist[0].header['MONDIODE'] = hdulist[0].header['LIGHTPOW']
         else:
@@ -321,7 +323,7 @@ class e2vFitsTranslator(VendorFitsTranslator):
         self._writeFile(hdulist[:17], locals(), verbose=verbose)
     def fe55(self, pattern='*_xray_xray_*.fits', time_stamp=None,
              verbose=True):
-        return self._processFiles('fe55', 'fe55', pattern, 
+        return self._processFiles('fe55', 'fe55', pattern,
                                   time_stamp=time_stamp, verbose=verbose)
     def bias(self, pattern='*_noims_nois_*.fits', time_stamp=None,
              verbose=True):
@@ -353,7 +355,7 @@ class e2vFitsTranslator(VendorFitsTranslator):
              verbose=True):
         if time_stamp is None:
             time_stamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        exptime = lambda x : pyfits.open(x)[0].header['EXPOSURE']
+        exptime = lambda x: pyfits.open(x)[0].header['EXPOSURE']
         infiles = self._infiles(pattern)
         for infile in infiles:
             if verbose:

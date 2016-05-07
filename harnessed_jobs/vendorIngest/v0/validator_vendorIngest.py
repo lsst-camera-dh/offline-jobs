@@ -3,8 +3,8 @@ import os
 import sys
 import subprocess
 from collections import OrderedDict
-import numpy as np
 import ConfigParser
+import numpy as np
 import lcatr.schema
 import siteUtils
 from vendorFitsTranslators import ItlFitsTranslator, e2vFitsTranslator
@@ -150,7 +150,7 @@ class ItlResults(VendorResults):
         numbers for the current at any given percentile, so set all
         amps to have this same value.
         """
-        # Need to loop through DarkFrac# entries to find the 95th 
+        # Need to loop through DarkFrac# entries to find the 95th
         # percentile value.
         index = None
         for key in dc:
@@ -203,7 +203,7 @@ class ItlResults(VendorResults):
             if key.startswith('residuals'):
                 devs = [float(x.strip())/100. for x in value.split()]
                 for amp, dev in zip(self.amps, devs):
-                    if (np.abs(dev) > max_frac_devs[amp]):
+                    if np.abs(dev) > max_frac_devs[amp]:
                         max_frac_devs[amp] = np.abs(dev)
         results = []
         for amp in self.amps:
@@ -388,7 +388,7 @@ class e2vResults(VendorResults):
                     for band, wl_range in self.qe_band_passes.items():
                         if (wl is not None and
                             value is not None and
-                            wl >= wl_range[0] and 
+                            wl >= wl_range[0] and
                             wl <= wl_range[1]):
                             qe_results[band].append(value)
         results = []

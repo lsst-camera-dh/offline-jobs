@@ -15,6 +15,7 @@ import json
 import pyfits
 import pylab
 import lsst.eotest.sensor as sensorTest
+import lsst.eotest.image_utils as imutils
 from lcatr.harness.helpers import dependency_glob
 import siteUtils
 
@@ -47,13 +48,13 @@ class JsonRepackager(object):
                      ('full_well', 'FULL_WELL'),
                      ('max_frac_dev', 'MAX_FRAC_DEV'),
                      ))
-    def __init__(self, outfile='eotest_results.fits'):
+    def __init__(self, outfile='eotest_results.fits', namps=16):
         """
-        Repackage per amp information in the json-formatted 
+        Repackage per amp information in the json-formatted
         summary.lims files from each analysis task into the
         EOTestResults-formatted output.
         """
-        self.eotest_results = sensorTest.EOTestResults(outfile)
+        self.eotest_results = sensorTest.EOTestResults(outfile, namps=namps)
     def process_file(self, infile):
         foo = json.loads(open(infile).read())
         for result in foo:
@@ -93,10 +94,11 @@ wl_files = siteUtils.datacatalog_glob('*_lambda_*.fits',
                                       description='Lambda files:')
 
 total_num, rolloff_mask = sensorTest.pixel_counts(wl_files[0])
+all_amps = imutils.allAmps(wl_files[0])
 
 # Aggregate information from summary.lims files into
 # a final EOTestResults output file.
-repackager = JsonRepackager()
+repackager = JsonRepackager(namps=len(all_amps))
 repackager.eotest_results.add_ccd_result('TOTAL_NUM_PIXELS', total_num)
 repackager.eotest_results.add_ccd_result('ROLLOFF_MASK_PIXELS', rolloff_mask)
 summary_files = processName_dependencyGlob('summary.lims')
