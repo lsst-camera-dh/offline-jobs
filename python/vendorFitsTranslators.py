@@ -87,12 +87,22 @@ class VendorFitsTranslator(object):
             raise ValueError("A pattern argument or keyword is required.")
         if time_stamp is None:
             time_stamp = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-        wl = lambda x: pyfits.open(x)[0].header[monowl_keyword]
         infiles = self._infiles(pattern)
         for infile in infiles:
             if verbose:
                 print "processing", os.path.basename(infile)
-            seqno = "%04i" % int(wl(infile))
+            hdr = pyfits.open(infile)[0].header
+            try:
+                if hdr['EXPTIME'] == 0:
+                    # Skip the bias frame that ITL includes in their
+                    # set of QE files.
+                    continue
+            except KeyError:
+                # This must be an e2v-produced file since they don't
+                # fill the EXPTIME keyword and that only gets set by
+                # the call to the e2vFitsTranslator.translate below.
+                pass
+            seqno = "%04i" % int(hdr[monowl_keyword])
             self.translate(infile, 'lambda', 'flat', seqno,
                            time_stamp=time_stamp, verbose=verbose)
         return time_stamp
