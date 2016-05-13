@@ -233,15 +233,27 @@ class ItlResults(VendorResults):
     def metrology(self):
         job = 'metrology'
         test_results = {}
-        test_results['mounting_grade'] = dict(self[job].items('Mounting'))['grade']
+        try:
+            test_results['mounting_grade'] = dict(self[job].items('Mounting'))['grade']
+        except KeyError:
+            test_results['mounting_grade'] = 'N/A'
         kwds = dict(self[job].items('Height'))
-        test_results['height_grade'] = kwds['grade']
+        try:
+            test_results['height_grade'] = kwds['grade']
+        except KeyError:
+            test_results['height_grade'] = 'N/A'
         kwds.update(dict(self[job].items('Flatness')))
-        test_results['flatness_grade'] = kwds['grade']
-        schema_keys = 'znom zmean zmedian zsdev flatnesshalfband flatnessfullband fsdev fmin fmax'.split()
+        try:
+            test_results['flatness_grade'] = kwds['grade']
+        except KeyError:
+            test_results['flatness_grade'] = 'N/A'
+        schema_keys = 'zmean zmedian zsdev z95halfband flatnesshalfband_95'.split()
         # Omit key/value pairs not in the schema.
         for key in schema_keys:
-            test_results[key] = kwds[key]
+            try:
+                test_results[key] = kwds[key]
+            except KeyError: # fill with sentinel value
+                test_results[key] = '-999'
         results = [validate('metrology_vendorIngest', **test_results)]
         return results
 
