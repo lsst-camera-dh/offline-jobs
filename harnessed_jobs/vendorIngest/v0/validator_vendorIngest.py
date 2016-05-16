@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import shutil
 import subprocess
 from collections import OrderedDict
 import ConfigParser
@@ -411,6 +412,54 @@ class e2vResults(VendorResults):
     def metrology(self):
         return []
 
+def ITL_metrology_files(rootdir, expected_num=1):
+    """
+    Find the ITL metrology scan files assuming they have .txt
+    extension and the first line starts with the word "Program".  If
+    the number of files found does not match the expected number, a
+    RuntimeError will be raised.
+    """
+    command = 'find %s -name \*.txt -print | grep metrology' % rootdir
+    txt_files = subprocess.check_output(command, shell=True).split()
+    met_files = []
+    for txt_file in txt_files:
+        with open(txt_file, 'r') as candidate:
+            if candidate.readline().startswith('Program'):
+                met_files.append(txt_file)
+    if len(met_files) != expected_num:
+        raise RuntimeError(("Found %i metrology scan files," % len(met_files))
+                           + ("expected %i." % expected_num))
+    return met_files
+
+def e2v_metrology_files(rootdir, expected_num=1):
+    """
+    Find the e2v metrology scan files assuming the filenames end with
+    'CT100.csv'.  If the number of files found does not match the
+    expected number, a RuntimeError will be raised.
+    """
+    command = 'find %s -name \*CT100.csv -print' % rootdir
+    met_files = subprocess.check_output(command, shell=True).split()
+    if len(met_files) != expected_num:
+        raise RuntimeError(("Found %i metrology scan files," % len(met_files))
+                           + ("expected %i." % expected_num))
+    return met_files
+
+def filerefs_for_metrology_files(met_files, lsstnum):
+    """
+    Return a list of lcatr.schema.filerefs for the input list of
+    metrology scan files, adding the metadata required to find them in
+    the Data Catalog.
+    """
+    results = []
+    for infile in met_files:
+        outfile = os.path.basename(infile)
+        shutil.copy(infile, outfile)
+        metadata = dict(DATA_PRODUCT='MET_SCAN',
+                        LSST_NUM=lsstnum,
+                        TEST_CATEGORY='MET')
+        results.append(lcatr.schema.fileref.make(outfile, metadata=metadata))
+    return results
+
 if __name__ == '__main__':
     results = [siteUtils.packageVersions()]
 
@@ -422,14 +471,17 @@ if __name__ == '__main__':
     if siteUtils.getCcdVendor() == 'ITL':
         vendor = ItlResults(vendorDataDir)
         translator = ItlFitsTranslator(lsstnum, vendorDataDir, '.')
+        met_files = ITL_metrology_files(vendorDataDir, expected_num=1)
     else:
         vendor = e2vResults(vendorDataDir)
         translator = e2vFitsTranslator(lsstnum, vendorDataDir, '.')
+        met_files = e2v_metrology_files(vendorDataDir, expected_num=1)
 
     results.extend(vendor.run_all())
 
     translator.run_all()
     results.extend([lcatr.schema.fileref.make(x) for x in translator.outfiles])
+    results.extend(filerefs_for_metrology_files(met_files, lsstnum))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
