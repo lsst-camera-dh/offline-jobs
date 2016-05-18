@@ -423,7 +423,7 @@ def ITL_metrology_files(rootdir, expected_num=1):
     try:
         txt_files = subprocess.check_output(command, shell=True).split()
     except subprocess.CalledProcessError as eobj:
-        # Presumably no files found so return empty list
+        print("No metrology files found:")
         print(eobj)
         return []
     met_files = []
@@ -446,7 +446,7 @@ def e2v_metrology_files(rootdir, expected_num=1):
     try:
         met_files = subprocess.check_output(command, shell=True).split()
     except subprocess.CalledProcessError as eobj:
-        # No files found so return empty list
+        print("No metrology files found:")
         print(eobj)
         return []
     if len(met_files) != expected_num:
