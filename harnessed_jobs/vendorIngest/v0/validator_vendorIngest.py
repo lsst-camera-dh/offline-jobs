@@ -49,7 +49,7 @@ class ItlResults(VendorResults):
                         'bright_defects' : 'brightdefects.txt',
                         'dark_defects' : 'darkdefects.txt',
                         'dark_current' : 'dark.txt',
-                        'read_noise' : 'gain.txt',
+                        'read_noise' : 'fe55.txt',
                         'cte_low' : 'eper1.txt',
                         'cte_high' : 'eper2.txt',
                         'traps' : 'traps.txt',
@@ -91,17 +91,28 @@ class ItlResults(VendorResults):
         return results
     def read_noise(self):
         job = 'read_noise'
-        noise = dict(self[job].items('Noise'))
+        noise = dict(self[job].items('ReadNoise'))
         results = []
+        system_noise_data = {}
         for amp in self.amps:
             ext = '%02i' % (amp - 1)
-            read_noise = float(noise['noise_%s' % ext])
-            system_noise = 0
+            read_noise = float(noise['readnoise_%s' % ext])
+            try:
+                system_noise = float(noise['systemnoisecorrection_%s' % ext])
+                system_noise_data[amp] = system_noise
+            except KeyError:
+                system_noise = 0
             total_noise = np.sqrt(read_noise**2 + system_noise**2)
             results.append(validate(job, amp=amp,
                                     read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
+        if system_noise_data:
+            outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
+            with open(outfile, 'w') as output:
+                output.write('# Amp    system noise (ADU rms)\n')
+                for amp, system_noise in system_noise_data.items():
+                    output.write('  %i        %f\n' % (amp, system_noise))
         return results
     def bright_defects(self):
         job = 'bright_defects'
@@ -493,6 +504,14 @@ if __name__ == '__main__':
     results.extend([lcatr.schema.fileref.make(x) for x in translator.outfiles])
     if met_files:
         results.extend(filerefs_for_metrology_files(met_files, lsstnum))
+    system_noise_file = '%s_system_noise.txt' % siteUtils.getUnitId()
+    if os.path.isfile(system_noise_file):
+        metadata = dict(LSST_NUM=siteUtils.getUnitId(),
+                        TEST_CATEGORY='EO',
+                        DATA_PRODUCT='SYSTEM_NOISE',
+                        DATA_SOURCE='VENDOR')
+        results.append(lcatr.schema.fileref.make(system_noise_file,
+                                                 metadata=metadata))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
