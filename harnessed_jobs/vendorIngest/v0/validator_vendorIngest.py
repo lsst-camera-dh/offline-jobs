@@ -420,7 +420,12 @@ def ITL_metrology_files(rootdir, expected_num=1):
     RuntimeError will be raised.
     """
     command = 'find %s -name \*.txt -print | grep metrology' % rootdir
-    txt_files = subprocess.check_output(command, shell=True).split()
+    try:
+        txt_files = subprocess.check_output(command, shell=True).split()
+    except subprocess.CalledProcessError as eobj:
+        print("No metrology files found:")
+        print(eobj)
+        return []
     met_files = []
     for txt_file in txt_files:
         with open(txt_file, 'r') as candidate:
@@ -438,7 +443,12 @@ def e2v_metrology_files(rootdir, expected_num=1):
     expected number, a RuntimeError will be raised.
     """
     command = 'find %s -name \*CT100.csv -print' % rootdir
-    met_files = subprocess.check_output(command, shell=True).split()
+    try:
+        met_files = subprocess.check_output(command, shell=True).split()
+    except subprocess.CalledProcessError as eobj:
+        print("No metrology files found:")
+        print(eobj)
+        return []
     if len(met_files) != expected_num:
         raise RuntimeError(("Found %i metrology scan files," % len(met_files))
                            + ("expected %i." % expected_num))
@@ -481,7 +491,8 @@ if __name__ == '__main__':
 
     translator.run_all()
     results.extend([lcatr.schema.fileref.make(x) for x in translator.outfiles])
-    results.extend(filerefs_for_metrology_files(met_files, lsstnum))
+    if met_files:
+        results.extend(filerefs_for_metrology_files(met_files, lsstnum))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
