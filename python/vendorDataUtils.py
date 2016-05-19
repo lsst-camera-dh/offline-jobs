@@ -31,9 +31,11 @@ def get_ITL_system_noise(gains, folder):
         system_noise_file = [x for x in datasets.full_paths()][0]
         with open(system_noise_file) as input_:
             system_noise = {}
-            for line in sysnoise:
+            for line in input_:
                 if line.startswith('#'):
                     continue
+                tokens = line.split()
+                system_noise[int(tokens[0])] = float(tokens[1])
     elif len(datasets) > 1:
         raise RuntimeError("More than one vendor system noise file found"
                            + " for " + sensor_id)
