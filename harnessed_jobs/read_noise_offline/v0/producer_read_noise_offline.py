@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 import sys
 import lsst.eotest.sensor as sensorTest
 import siteUtils
@@ -16,11 +17,16 @@ bias_files = siteUtils.datacatalog_glob('*_fe55_fe55_*.fits',
                                         description='Bias files (using overscan):')
 
 gains = eotestUtils.getSensorGains(jobname='fe55_offline')
-system_noise = vendorDataUtils.getSystemNoise(gains)
+
+if os.environ['LCATR_DATACATALOG_FOLDER'].find('vendorIngest') != -1:
+    # We are analyzing vendor data, so get system noise provided by vendor.
+    system_noise = vendorDataUtils.getSystemNoise(gains)
+else:
+    system_noise = eotestUtils.getSystemNoise(gains)
+
 if system_noise is None:
     print
-    print "WARNING: The system noise file is not given in"
-    print "config/%s/eotest_calibrations.cfg." % siteUtils.getSiteName()
+    print "WARNING: The system noise file is not found."
     print "The system noise will be set to zero for all amplifiers."
     print
     sys.stdout.flush()
