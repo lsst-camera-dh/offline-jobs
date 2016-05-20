@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
 """
-producer_vendorIngest.py - jobHarness script for use by eTraveler to ingest vendor data
+producer_vendorIngest.py - jobHarness script for use by eTraveler to
+ingest vendor data for science raft and corner raft sensors
 
 Tentative Conventions:
-3. LSST-CAM ID for a newly arrived sensor shall be <vendor>-<model>-<vendorSerialNo>, e.g., ITL-3800C-126
-4. New hardware must be registered in the eTraveler DB prior to running this traveler
-5. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-3800C-126
-6. eTraveler "Hardware Type" corresponds to LCATR_UNIT_TYPE ("ITL-CCD" or "e2v-CCD")
+1. LSST-CAM ID for a newly arrived sensor shall be <vendor>-<model>-<vendorSerialNo>,
+     e.g., ITL-3800C-126
+2. New hardware must be registered in the eTraveler DB prior to running this traveler
+3. eTraveler "LSSTCAM serial" corresponds to LCATR_UNIT_ID, e.g., ITL-3800C-126
+4. eTraveler "Hardware Type" corresponds to LCATR_UNIT_TYPE ("ITL-CCD" or
+     "ITL-Wavefront-CCD" or "e2v-CCD")
 
 =====================================================================================
 =====================================================================================
@@ -26,11 +29,13 @@ where vendor = {e2v,E2V,ITL}
 
 ** Archive copy of vendor delivery:
 LSSTROOT = /nfs/farm/g/lsst/u1
-$LSSTROOT/vendorData/FTP/<vendor>/delivery/<deliveryDate>/*.{tar.bz2, md5sum}
+$LSSTROOT/vendorData/FTP/<vendor>/delivery/<deliveryDate>/*.{tar.bz2, md5sum, md5}
 
 where deliveryDate = YYYYMMDD or YYYYMMDD{a-z} if multiple deliveries on same day
 
-** Unpacked copy of vendor delivery (after eTraveler SR-RCV-1):
+  ---> ONLY a single sensor's data per delivery directory!
+
+** Unpacked copy of vendor delivery (after eTraveler SR-RCV-01 or CR-RCV-01):
 $LSSTROOT/vendorData/<vendor>/<LSSTsensorID>/<eTmode>/<JHinstance>/...
 
 where
@@ -65,6 +70,7 @@ dryrun = False
 print '\n\nIngest LSST Vendor Data.'
 start = datetime.datetime.now()
 print 'Configuration:\n============='
+print 'Now Running ',sys.argv[0]
 print 'Start time: ',start
 print 'Current working directory (os.environ): ',os.environ['PWD']
 #rc = os.system('printenv|grep -i lcatr')
@@ -192,6 +198,52 @@ def regVendorFiles(targetDirRoot,targetLDirRoot,deliveryTime):
    return
 
 
+def unpackTarfile(vendorFTPdir,datafile,md5file):
+
+# md5 checksum comparison, pre- and post-ftp
+   print '\nVerify md5 checksums: ',md5file
+   print datetime.datetime.now()
+
+   md5file = os.path.join(vendorFTPdir,md5file)
+   datafile = os.path.join(vendorFTPdir,datafile)
+
+   md5old = open(md5file).read().split()
+   if len(md5old) == 1 or len(md5old) == 2:      ## Current e2v and ITL practice
+      md5old = md5old[0].upper()
+   elif len(md5old) >= 3:
+      md5old = open(md5file).read().split()[2].upper()
+   else:
+      print '\n%ERROR: Unable to parse supplied md5 file: ',md5file
+      sys.exit(1)
+
+   md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
+   print 'Old e2v checksum = ',md5old
+   print 'New md5 checksum = ',md5new
+   if md5old != md5new:
+      print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
+      sys.exit(1)
+      pass
+   print 'Checksums match.'
+
+# Uncompress/untar into target directory
+   print 'Uncompress and unpack tarball: ',datafile
+   print datetime.datetime.now()
+   sys.stdout.flush()
+
+   try:
+      tarfile.open(datafile,'r').extractall(vendorDir)
+   except:
+      print '\n%ERROR: Failed to extractall from vendor tarball', filename
+      sys.exit(1)
+      pass
+   return
+
+######################## end of unpackTarfile() #############################
+
+
+
+
+
 
 
 
@@ -217,18 +269,29 @@ if vendor == 'e2v' or vendor == 'E2V' or vendor == 'ITL':
    ## vendor ID is enforced by sensorID convention
    vendorID = LSSTID.split('-',1)[1]   ## 10/13/2015 unused
 
-   ## Look for data and checksum files
+   ## Look for data and checksum files (and optional metrology files)
    ## Standard file names are sym links to actual vendor files
    #   fileName = 'ID-'+vendorID
    fileName = LSSTID  ## 10/13/2015 new file naming using "LSSTID" = <vendor>-<model>-<vendorID>
    md5file = ''
    datafile = ''
+   metrologyDatafile = ''
+   metrologyMd5file = ''
+   metrology = False
+   
    for file in flist:
       if file.startswith(fileName):
          if file.endswith('.tar.bz2') or file.endswith('.tar.gz'): datafile = file
          if file.endswith('.md5') or file.endswith('.md5sum'): md5file = file
          pass
+         
+      if file.startswith('metrology'):
+         if file.endswith('.tar.bz2') or file.endswith('.tar.gz'): metrologyDatafile = file
+         if file.endswith('.md5') or file.endswith('.md5sum'): metrologyMd5file = file
+         metrology = True
+         pass
       pass
+
    if len(md5file) == 0 or len(datafile) == 0:
       print '\n%ERROR: Unable to find expected data and/or checksum files in FTP area'
       print ' Filename = ',fileName
@@ -241,47 +304,33 @@ if vendor == 'e2v' or vendor == 'E2V' or vendor == 'ITL':
    print 'Found md5file:  ',md5file
    print 'Found datafile: ',datafile
 
+
+   if metrology and (len(metrologyMd5file)==0 or len(metrologyDatafile)==0) :
+      print '\n%ERROR: Unable to find expected metrology and/or checksum files in FTP area'
+      print ' metrology data file = ',metrologyDatafile
+      print ' metrology md5 file  = ',metrologyMd5file
+      print ' Full ftp directory listing (',vendorFTPdir,'):'
+      for file in flist:
+         print file
+         pass
+      sys.exit(1)
+
+   if metrology:
+      print ' metrology data file = ',metrologyDatafile
+      print ' metrology data file checksum = ',metrologyMd5file
+      pass
+
    
 # Create target directory for Vendor Data
    print 'Create target directory for vendor data.'
    if not os.access(vendorDir,os.F_OK): os.makedirs(vendorDir)
 
-# md5 checksum comparison, pre- and post-ftp
-   print 'Verify md5 checksums'
-   print datetime.datetime.now()
 
-   md5file = os.path.join(vendorFTPdir,md5file)
-   datafile = os.path.join(vendorFTPdir,datafile)
+# Check MD5 checksums, then unpack tar file
+   unpackTarfile(vendorFTPdir,datafile,md5file)
 
-   md5old = open(md5file).read().split()
-   if len(md5old) == 1 or len(md5old) == 2:      ## Current e2v and ITL practice
-      md5old = md5old[0].upper()
-   elif len(md5old) >= 3:
-      md5old = open(md5file).read().split()[2].upper()
-   else:
-      print '\n%ERROR: Unable to parse supplied md5 file: ',md5file
-      sys.exit(1)
+   if metrology: unpackTarfile(vendorFTPdir,metrologyDatafile,metrologyMd5file)
 
-   md5new = hashlib.md5(open(datafile).read()).hexdigest().upper()
-   print 'Old e2v checksum = ',md5old
-   print 'New md5 checksum = ',md5new
-   if md5old != md5new:
-      print '\n%ERROR: Checksum error in vendor tarball:\n old md5 = ',md5old,'\n new md5 = ',md5new
-      sys.exit(1)
-      pass
-   print 'Checksums match.'
-
-# Uncompress/untar into target directory
-   print 'Uncompress and unpack tarball'
-   print datetime.datetime.now()
-   sys.stdout.flush()
-
-   try:
-      tarfile.open(datafile,'r').extractall(vendorDir)
-   except:
-      print '\n%ERROR: Failed to extractall from vendor tarball'
-      sys.exit(1)
-      pass
 
 # Create a sym-link containing the delivery time (for posterity)
    deliveryTime = os.readlink(vendorFTPdir)
