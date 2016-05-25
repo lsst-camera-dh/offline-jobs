@@ -529,15 +529,18 @@ def ITL_metrology_files(rootdir, expected_num=1):
 def e2v_metrology_files(rootdir, expected_num=1):
     """
     Find the e2v metrology scan files assuming the filenames end with
-    'CT100.csv'.  If the number of files found does not match the
+    'CT100*.csv'.  If the number of files found does not match the
     expected number, a RuntimeError will be raised.
     """
-    command = 'find %s -name \*CT100.csv -print' % rootdir
+    command = 'find %s -name \*CT100\*.csv -print' % rootdir
     try:
         met_files = subprocess.check_output(command, shell=True).split()
     except subprocess.CalledProcessError as eobj:
-        print("No metrology files found:")
+        print("Exception raised while running 'find' for metrology data:")
         print(eobj)
+        met_files = []
+    if len(met_files) == 0:
+        print("No metrology files found.")
         return []
     if len(met_files) != expected_num:
         raise RuntimeError(("Found %i metrology scan files," % len(met_files))
