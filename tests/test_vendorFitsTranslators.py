@@ -6,7 +6,9 @@ import glob
 import shutil
 import unittest
 import astropy.io.fits as fits
-from vendorFitsTranslators import VendorFitsTranslator, ItlFitsTranslator
+from VendorFitsTranslator import VendorFitsTranslator
+from ItlFitsTranslator import ItlFitsTranslator
+from e2vFitsTranslator import e2vFitsTranslator
 
 _itl_test_file = 'ID089_SN20234_linearity.0058.fits'
 if not os.path.isfile(_itl_test_file):
@@ -16,26 +18,46 @@ _itl_8amp_test_file = 'ID004_sn21467_linearity.0001.fits'
 if not os.path.isfile(_itl_8amp_test_file):
     _itl_8amp_test_file = None
 
-class DummyVendorFitsTranslator(VendorFitsTranslator):
+_wls = (350, 450, 500, 750, 800, 1000)
+
+class DummyItlVendorFitsTranslator(ItlFitsTranslator):
     "Dummy subclass to provide stubs for base class template methods."
 
     def __init__(self, lsst_num, rootdir, outputBaseDir):
         "Constructor stub"
-        super(DummyVendorFitsTranslator, self).__init__(lsst_num, rootdir,
-                                                        outputBaseDir)
+        super(DummyItlVendorFitsTranslator, self).__init__(lsst_num, rootdir,
+                                                           outputBaseDir)
 
     def translate(self, infile, test_type, image_type, seqno,
                   time_stamp=None, verbose=True):
         "Re-write the input FITS file with the conforming name."
         lsst_num = self.lsst_num
         time_stamp = '000'
-        self._writeFile(fits.open(infile), locals(), verbose=verbose)
+        self._write_file(fits.open(infile), locals(), verbose=verbose)
+
+    @staticmethod
+    def _compute_incident_flux():
+        return dict((wl, 1) for wl in _wls)
+
+class Dummye2vVendorFitsTranslator(e2vFitsTranslator):
+    "Dummy subclass to provide stubs for base class template methods."
+
+    def __init__(self, lsst_num, rootdir, outputBaseDir):
+        "Constructor stub"
+        super(Dummye2vVendorFitsTranslator, self).__init__(lsst_num, rootdir,
+                                                           outputBaseDir)
+
+    def translate(self, infile, test_type, image_type, seqno,
+                  time_stamp=None, verbose=True):
+        "Re-write the input FITS file with the conforming name."
+        lsst_num = self.lsst_num
+        time_stamp = '000'
+        self._write_file(fits.open(infile), locals(), verbose=verbose)
 
 class VendorTranslatorTestCase(unittest.TestCase):
     """
     TestCase class for VendorFitsTranslator base class.
     """
-    _wls = (350, 450, 500, 750, 800, 1000)
     def setUp(self):
         self._generate_ITL_lambda_files()
         self._generate_e2v_lambda_files()
@@ -49,7 +71,7 @@ class VendorTranslatorTestCase(unittest.TestCase):
 
     def _generate_ITL_lambda_files(self):
         self._ITL_files = []
-        for i, wl in enumerate(self._wls):
+        for i, wl in enumerate(_wls):
             filename = 'ITL_lambda_scan_%02i.fits' % i
             hdulist = fits.HDUList()
             hdulist.append(fits.PrimaryHDU())
@@ -58,21 +80,23 @@ class VendorTranslatorTestCase(unittest.TestCase):
             else:
                 hdulist[0].header['EXPTIME'] = float(i*0.3)
             hdulist[0].header['MONOWL'] = wl
+            hdulist[0].header['MONDIODE'] = 1
             hdulist.writeto(filename, clobber=True)
             self._ITL_files.append(filename)
 
     def _generate_e2v_lambda_files(self):
         self._e2v_files = []
-        for i, wl in enumerate(self._wls):
+        for i, wl in enumerate(_wls):
             filename = 'e2v_lambda_scan_%02i.fits' % i
             hdulist = fits.HDUList()
             hdulist.append(fits.PrimaryHDU())
+            hdulist[0].header['WAVELEN'] = wl
             hdulist[0].header['MONOWL'] = wl
             hdulist.writeto(filename, clobber=True)
             self._e2v_files.append(filename)
 
     def test_lambda_scan_for_ITL(self):
-        translator = DummyVendorFitsTranslator('000-00', '.', '.')
+        translator = DummyItlVendorFitsTranslator('000-00', '.', '.')
         translator.lambda_scan(pattern='ITL_lambda_scan_*.fits')
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
         self.assertEqual(len(files), 5)
@@ -82,14 +106,14 @@ class VendorTranslatorTestCase(unittest.TestCase):
             self.assertNotEqual(header['MONOWL'], 350)
 
     def test_lambda_scan_for_e2v(self):
-        translator = DummyVendorFitsTranslator('000-00', '.', '.')
+        translator = Dummye2vVendorFitsTranslator('000-00', '.', '.')
         translator.lambda_scan(pattern='e2v_lambda_scan_*.fits')
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
         self.assertEqual(len(files), 6)
         for i, item in enumerate(files):
             header = fits.open(item)[0].header
             self.assertRaises(KeyError, header.__getitem__, 'EXPTIME')
-            self.assertEqual(header['MONOWL'], self._wls[i])
+            self.assertEqual(header['MONOWL'], _wls[i])
 
 class ItlFitsTranslatorsTestCase(unittest.TestCase):
     """

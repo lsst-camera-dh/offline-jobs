@@ -1,6 +1,16 @@
+"""
+Utilities for vendor data handling.
+"""
 import os
 import siteUtils
 from DataCatalog import DataCatalog
+
+default_system_noise = {'ITL': dict((item+1, value) for item, value in
+                                    enumerate((1.48, 1.62, 1.64, 1.50,
+                                               1.49, 1.56, 1.40, 1.71,
+                                               1.63, 1.43, 1.61, 1.45,
+                                               1.50, 1.64, 1.47, 1.55))),
+                        'E2V': dict((item, 0) for item in range(1, 17))}
 
 def vendor_DataCatalog_folder(sensor_id=None):
     """
@@ -12,12 +22,12 @@ def vendor_DataCatalog_folder(sensor_id=None):
         sensor_id = siteUtils.getUnitId()
     folder_root = dict(Prod='/LSST/mirror/SLAC-prod/prod/',
                        Dev='/LSST/mirror/SLAC-test/test/')
-    server = os.path.basename(os.environ['LCATR_LIMS_URL'])
+    server = os.path.basename(os.environ['LCATR_LIMS_URL']).rstrip('/')
     return os.path.join(folder_root[server], '*', sensor_id, 'vendorIngest')
 
-def get_ITL_system_noise(gains, folder):
+def query_for_vendor_system_noise(folder, single_dataset_flag=False):
     """
-    Try to retrieve the ITL system noise from the Data Catalog for the
+    Query for the vendor system noise from the Data Catalog for the
     current device.
     """
     sensor_id = siteUtils.getUnitId()
@@ -27,60 +37,26 @@ def get_ITL_system_noise(gains, folder):
                          'DATA_PRODUCT=="SYSTEM_NOISE"',
                          'DATA_SOURCE=="VENDOR"'))
     datasets = dc.find_datasets(query)
-    if len(datasets) == 1:
-        system_noise_file = [x for x in datasets.full_paths()][0]
-        with open(system_noise_file) as input_:
-            system_noise = {}
-            for line in input_:
-                if line.startswith('#'):
-                    continue
-                tokens = line.split()
-                system_noise[int(tokens[0])] = float(tokens[1])
-    elif len(datasets) > 1:
-        raise RuntimeError("More than one vendor system noise file found"
-                           + " for " + sensor_id)
-    else:
-        # No files found, so print a warning and use the
-        # recommended default values that Mike Lesser sent by
-        # email.
-        print("No ITL vendor system noise data found, so use default"
-              + " values recommended by ITL.")
-        system_noise = dict((item+1, value) for item, value in
-                            enumerate((1.48, 1.62, 1.64, 1.50,
-                                       1.49, 1.56, 1.40, 1.71,
-                                       1.63, 1.43, 1.61, 1.45,
-                                       1.50, 1.64, 1.47, 1.55)))
+    if len(datasets) > 1:
+        message = "Multiple vendor system noises file found for " + sensor_id
+        for filepath in datasets.full_paths():
+            message += "\n  %s\n" % filepath
+        print(message)
+        if single_dataset_flag:
+            raise RuntimeError(message)
+    if len(datasets) > 0:
+        return [x for x in datasets.full_paths()][0]
+    return None
 
-    # Convert from ADU to e- and return.
-    return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
-
-def get_e2v_system_noise(gains, folder):
-    """
-    Try to retrieve the e2v system noise from the Data Catalog for the
-    current device.
-    """
-    sensor_id = siteUtils.getUnitId()
-    dc = DataCatalog(folder=folder, site=siteUtils.getSiteName())
-    query = ' && '.join(('LSST_NUM=="%(sensor_id)s"' % locals(),
-                         'TEST_CATEGORY=="EO"',
-                         'DATA_PRODUCT=="SYSTEM_NOISE"',
-                         'DATA_SOURCE=="VENDOR"'))
-    datasets = dc.find_datasets(query)
-    if len(datasets) == 1:
-        system_noise_file = [x for x in datasets.full_paths()][0]
-        with open(system_noise_file) as input_:
-            system_noise = {}
-            for line in input_:
-                if line.startswith('#'):
-                    continue
-                tokens = line.split()
-                system_noise[int(tokens[0])] = float(tokens[1])
-    elif len(datasets) > 1:
-        raise RuntimeError("More than one vendor system noise file found"
-                           + " for " + sensor_id)
-    else:
-        system_noise = dict([(amp, 0) for amp in range(1, 17)])
-    return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
+def parse_system_noise_file(system_noise_file):
+    system_noise = {}
+    with open(system_noise_file) as input_:
+        for line in input_:
+            if line.startswith('#'):
+                continue
+            tokens = line.split()
+            system_noise[int(tokens[0])] = float(tokens[1])
+    return system_noise
 
 def getSystemNoise(gains, folder=None):
     """
@@ -93,9 +69,13 @@ def getSystemNoise(gains, folder=None):
             folder = os.environ['LCATR_DATACATALOG_FOLDER']
         except KeyError:
             # Infer the folder based on the eT server instance.
-            folder = vendorDataCatalog_folder()
-    if siteUtils.getCcdVendor() == 'ITL':
-        return get_ITL_system_noise(gains, folder)
+            folder = vendor_DataCatalog_folder()
+    system_noise_file = query_for_vendor_system_noise(folder)
+    if system_noise_file is None:
+        # set to vendor defaults
+        system_noise = default_system_noise[siteUtils.getCcdVendor().upper()]
     else:
-        return get_e2v_system_noise(gains, folder)
-    return None
+        system_noise = parse_system_noise_file(system_noise_file)
+
+    # Convert from ADU to e- and return.
+    return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
