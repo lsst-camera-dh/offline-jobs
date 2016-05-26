@@ -1,7 +1,7 @@
 """
 FITS file translator for ITL vendor data.
 """
-from __future__ import absolute_import, print_function
+from __future__ import absolute_import, print_function, division
 import os
 import subprocess
 from collections import OrderedDict

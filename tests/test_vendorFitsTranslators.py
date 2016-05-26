@@ -1,12 +1,12 @@
 """
 Unit test code for vendorFitsTranslators.py module
 """
+from __future__ import print_function, absolute_import
 import os
 import glob
 import shutil
 import unittest
 import astropy.io.fits as fits
-from VendorFitsTranslator import VendorFitsTranslator
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
@@ -22,7 +22,6 @@ _wls = (350, 450, 500, 750, 800, 1000)
 
 class DummyItlVendorFitsTranslator(ItlFitsTranslator):
     "Dummy subclass to provide stubs for base class template methods."
-
     def __init__(self, lsst_num, rootdir, outputBaseDir):
         "Constructor stub"
         super(DummyItlVendorFitsTranslator, self).__init__(lsst_num, rootdir,
@@ -41,7 +40,6 @@ class DummyItlVendorFitsTranslator(ItlFitsTranslator):
 
 class Dummye2vVendorFitsTranslator(e2vFitsTranslator):
     "Dummy subclass to provide stubs for base class template methods."
-
     def __init__(self, lsst_num, rootdir, outputBaseDir):
         "Constructor stub"
         super(Dummye2vVendorFitsTranslator, self).__init__(lsst_num, rootdir,
@@ -70,6 +68,7 @@ class VendorTranslatorTestCase(unittest.TestCase):
         shutil.rmtree('./lambda')
 
     def _generate_ITL_lambda_files(self):
+        "Generate ITL files including one with a zero time exposure."
         self._ITL_files = []
         for i, wl in enumerate(_wls):
             filename = 'ITL_lambda_scan_%02i.fits' % i
@@ -85,6 +84,7 @@ class VendorTranslatorTestCase(unittest.TestCase):
             self._ITL_files.append(filename)
 
     def _generate_e2v_lambda_files(self):
+        "Generate e2v files."
         self._e2v_files = []
         for i, wl in enumerate(_wls):
             filename = 'e2v_lambda_scan_%02i.fits' % i
@@ -96,6 +96,7 @@ class VendorTranslatorTestCase(unittest.TestCase):
             self._e2v_files.append(filename)
 
     def test_lambda_scan_for_ITL(self):
+        "Test that the zero exposure time frame is not translated."
         translator = DummyItlVendorFitsTranslator('000-00', '.', '.')
         translator.lambda_scan(pattern='ITL_lambda_scan_*.fits')
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
@@ -106,6 +107,7 @@ class VendorTranslatorTestCase(unittest.TestCase):
             self.assertNotEqual(header['MONOWL'], 350)
 
     def test_lambda_scan_for_e2v(self):
+        "Test that all e2v files are expected."
         translator = Dummye2vVendorFitsTranslator('000-00', '.', '.')
         translator.lambda_scan(pattern='e2v_lambda_scan_*.fits')
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
@@ -120,14 +122,17 @@ class ItlFitsTranslatorsTestCase(unittest.TestCase):
     TestCase class for ItlFitsTranlator class.
     """
     def setUp(self):
+        "Set up the ItlFitsTranslator object"
         self._itl_lsst_num = 'ITL-3800C-089'
         self._itl_translator = ItlFitsTranslator(self._itl_lsst_num, '.')
 
     def tearDown(self):
+        "Clean up the linearity directory"
         shutil.rmtree('./linearity')
 
     @unittest.skipUnless(_itl_test_file, "No ITL test file available")
     def test_ItlTranslation(self):
+        "Test the translation for science sensors."
         test_type = 'linearity'
         image_type = 'flat'
         seqno = 16
@@ -138,6 +143,7 @@ class ItlFitsTranslatorsTestCase(unittest.TestCase):
     @unittest.skipUnless(_itl_8amp_test_file,
                          "No 8 amp ITL test file available")
     def test_8amp_ItlTranslation(self):
+        "Test the translation for wavefront sensors."
         test_type = 'linearity'
         image_type = 'flat'
         seqno = 8

@@ -1,6 +1,7 @@
 """
 Utilities for vendor data handling.
 """
+from __future__ import absolute_import, print_function
 import os
 import siteUtils
 from DataCatalog import DataCatalog
@@ -49,6 +50,7 @@ def query_for_vendor_system_noise(folder, single_dataset_flag=False):
     return None
 
 def parse_system_noise_file(system_noise_file):
+    "Unpack the system noise from the system noise file."
     system_noise = {}
     with open(system_noise_file) as input_:
         for line in input_:

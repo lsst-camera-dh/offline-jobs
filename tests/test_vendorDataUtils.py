@@ -1,6 +1,7 @@
 """
 Unit tests for vendorDataUtils module.
 """
+from __future__ import print_function, absolute_import
 import os
 import unittest
 import siteUtils
@@ -18,12 +19,10 @@ class VendorDataUtilsTestCase(unittest.TestCase):
                                    None)
         os.environ['LCATR_LIMS_URL'] = \
             'http://lsst-camera.slac.stanford.edu:80/eTraveler/Prod'
-        pass
 
     def tearDown(self):
         "Clean up after each test."
         del os.environ['LCATR_LIMS_URL']
-        pass
 
     def test_vendor_datacatalog_folder(self):
         """
@@ -36,7 +35,7 @@ class VendorDataUtilsTestCase(unittest.TestCase):
                                     sensor_id, 'vendorIngest')
             self.assertEqual(folder, expected)
 
-    @unittest.skipUnless(siteUtils.getSiteName()=='SLAC',
+    @unittest.skipUnless(siteUtils.getSiteName() == 'SLAC',
                          'This test can only be run at SLAC')
     def test_query_for_system_noise(self):
         "Query for known vendor system noise folder at SLAC."
@@ -60,7 +59,7 @@ class VendorDataUtilsTestCase(unittest.TestCase):
             self.assertEqual(system_noise[amp], system_noise_input[amp])
         os.remove(system_noise_file)
 
-    @unittest.skipUnless(siteUtils.getSiteName()=='SLAC',
+    @unittest.skipUnless(siteUtils.getSiteName() == 'SLAC',
                          'This test can only be run at SLAC')
     def test_get_system_noise(self):
         "Test system noise retrieval for abstract function."
