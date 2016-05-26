@@ -54,6 +54,34 @@ def get_ITL_system_noise(gains, folder):
     # Convert from ADU to e- and return.
     return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
 
+def get_e2v_system_noise(gains, folder):
+    """
+    Try to retrieve the e2v system noise from the Data Catalog for the
+    current device.
+    """
+    sensor_id = siteUtils.getUnitId()
+    dc = DataCatalog(folder=folder, site=siteUtils.getSiteName())
+    query = ' && '.join(('LSST_NUM=="%(sensor_id)s"' % locals(),
+                         'TEST_CATEGORY=="EO"',
+                         'DATA_PRODUCT=="SYSTEM_NOISE"',
+                         'DATA_SOURCE=="VENDOR"'))
+    datasets = dc.find_datasets(query)
+    if len(datasets) == 1:
+        system_noise_file = [x for x in datasets.full_paths()][0]
+        with open(system_noise_file) as input_:
+            system_noise = {}
+            for line in input_:
+                if line.startswith('#'):
+                    continue
+                tokens = line.split()
+                system_noise[int(tokens[0])] = float(tokens[1])
+    elif len(datasets) > 1:
+        raise RuntimeError("More than one vendor system noise file found"
+                           + " for " + sensor_id)
+    else:
+        system_noise = dict([(amp, 0) for amp in range(1, 17)])
+    return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
+
 def getSystemNoise(gains, folder=None):
     """
     Return the system noise for each amplifier channel in units of rms
@@ -69,7 +97,5 @@ def getSystemNoise(gains, folder=None):
     if siteUtils.getCcdVendor() == 'ITL':
         return get_ITL_system_noise(gains, folder)
     else:
-        # e2v should be handled here, but they don't provide system
-        # noise, so fall through to the default return value.
-        pass
+        return get_e2v_system_noise(gains, folder)
     return None
