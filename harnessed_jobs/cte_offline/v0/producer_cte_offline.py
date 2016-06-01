@@ -6,6 +6,9 @@ import eotestUtils
 sensor_id = siteUtils.getUnitId()
 
 gains = eotestUtils.getSensorGains(jobname='fe55_offline')
+mask_files = eotestUtils.glob_mask_files()
+mask_files = [item for item in mask_files if item.find('rolloff_defects') == -1]
+
 sflat_high_files = siteUtils.datacatalog_glob('*_sflat_500_flat_H*.fits',
                                               testtype='SFLAT_500',
                                               imgtype='FLAT',
