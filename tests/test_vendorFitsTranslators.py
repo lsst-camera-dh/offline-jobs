@@ -10,11 +10,11 @@ import astropy.io.fits as fits
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
-_itl_test_file = 'ID089_SN20234_linearity.0058.fits'
+_itl_test_file = '/nfs/farm/g/lsst/u1/vendorData/ITL/ITL-3800C-089/Dev/16310/report1/linearity/ID089_SN20234_linearity.0058.fits'
 if not os.path.isfile(_itl_test_file):
     _itl_test_file = None
 
-_itl_8amp_test_file = 'ID004_sn21467_linearity.0001.fits'
+_itl_8amp_test_file = '/nfs/farm/g/lsst/u1/vendorData/ftp/ITL/LSST_Wavefront/20160420/report1/linearity/ID004_sn21467_linearity.0001.fits'
 if not os.path.isfile(_itl_8amp_test_file):
     _itl_8amp_test_file = None
 
@@ -57,10 +57,12 @@ class VendorTranslatorTestCase(unittest.TestCase):
     TestCase class for VendorFitsTranslator base class.
     """
     def setUp(self):
+        "Generate the test files for each vendor."
         self._generate_ITL_lambda_files()
         self._generate_e2v_lambda_files()
 
     def tearDown(self):
+        "Clean up the generated files and directories."
         for item in self._ITL_files:
             os.remove(item)
         for item in self._e2v_files:
