@@ -366,13 +366,20 @@ class e2vResults(VendorResults):
         "Process the read noise results."
         job = 'read_noise'
         results = []
+        system_noise_data = {}
         for amp, tokens in self._csv_data('\*Noise\*Multiple\*Samples\*Summary\*.csv'):
             read_noise = float(tokens[1])
             total_noise = float(tokens[3])
             system_noise = np.sqrt(total_noise**2 - read_noise**2)
+            system_noise_data[amp] = system_noise
             results.append(validate(job, amp=amp, read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
+#        outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
+#        with open(outfile, 'w') as output:
+#            output.write('# Amp    system noise (ADU rms)\n')
+#            for amp, system_noise in system_noise_data.items():
+#                output.write('  %i        %f\n' % (amp, system_noise))
         return results
 
     def bright_defects(self):
