@@ -374,11 +374,11 @@ class e2vResults(VendorResults):
             results.append(validate(job, amp=amp, read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
-        outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
-        with open(outfile, 'w') as output:
-            output.write('# Amp    system noise (ADU rms)\n')
-            for amp, system_noise in system_noise_data.items():
-                output.write('  %i        %f\n' % (amp, system_noise))
+#        outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
+#        with open(outfile, 'w') as output:
+#            output.write('# Amp    system noise (ADU rms)\n')
+#            for amp, system_noise in system_noise_data.items():
+#                output.write('  %i        %f\n' % (amp, system_noise))
         return results
 
     def bright_defects(self):
