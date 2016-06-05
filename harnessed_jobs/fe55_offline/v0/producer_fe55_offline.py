@@ -37,4 +37,5 @@ rolloff_mask_file = '%s_rolloff_defects_mask.fits' % sensor_id
 sensorTest.rolloff_mask(fe55_files[0], rolloff_mask_file)
 
 task = sensorTest.Fe55Task()
+task.config.fit_xy = True
 task.run(sensor_id, fe55_files, (rolloff_mask_file,), accuracy_req=0.01)
