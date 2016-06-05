@@ -3,6 +3,7 @@
 from __future__ import absolute_import, print_function
 import os
 import sys
+import fnmatch
 import shutil
 import subprocess
 from collections import OrderedDict
@@ -504,10 +505,11 @@ class e2vResults(VendorResults):
 
 def ITL_metrology_files(rootdir, expected_num=1):
     """
-    Find the ITL metrology scan files assuming they have .txt
-    extension and the first line starts with the word "Program".  If
-    the number of files found does not match the expected number, a
-    RuntimeError will be raised.
+    Find the ITL metrology scan files assuming they have filenames of
+    the form '*Z_Inspect*.txt' or the '*.txt' extension and the first
+    non-blank line starts with the word "Program".  If the number of
+    files found does not match the expected number, a RuntimeError
+    will be raised.
     """
     command = 'find %s -name \*.txt -print | grep metrology' % rootdir
     try:
@@ -516,14 +518,23 @@ def ITL_metrology_files(rootdir, expected_num=1):
         print("No metrology files found:")
         print(eobj)
         return []
-    met_files = []
-    for txt_file in txt_files:
-        with open(txt_file, 'r') as candidate:
-            if candidate.readline().startswith('Program'):
-                met_files.append(txt_file)
+    met_files = [txt_file for txt_file in txt_files
+                 if fnmatch.fnmatch(txt_file, '*ID*SN*Z_Inspect*.txt')]
+    if not met_files:
+        for txt_file in txt_files:
+            # Look for the word "Program" as the first non-blank line
+            # of a .txt file.
+            with open(txt_file, 'r') as candidate:
+                for line in candidate:
+                    if len(line.split()) == 0:
+                        # skip white-space only lines
+                        continue
+                    if line.startswith('Program'):
+                        met_files.append(txt_file)
+                    break
     if len(met_files) != expected_num:
         raise RuntimeError(("Found %i metrology scan files," % len(met_files))
-                           + ("expected %i." % expected_num))
+                           + (" expected %i." % expected_num))
     return met_files
 
 def e2v_metrology_files(rootdir, expected_num=1):
