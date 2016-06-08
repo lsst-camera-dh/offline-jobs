@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 import os
-import pylab
+
+# This is needed so that matplotlib can write to .matplotlib
+os.environ['MPLCONFIGDIR'] = os.curdir
+import matplotlib
+# For batch-processing, use the AGG backend to avoid needing an X11
+# connection.
+matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 import lsst.eotest.image_utils as imutils
 import lsst.eotest.sensor as sensorTest
 import siteUtils
@@ -29,7 +37,7 @@ if nf > 0:
 # exposure for inclusion in the test report
 #
 sensorTest.fe55_zoom(fe55_files[0], size=250, amp=1)
-pylab.savefig('%(sensor_id)s_fe55_zoom.png' % locals())
+plt.savefig('%(sensor_id)s_fe55_zoom.png' % locals())
 
 # Roll-off defects mask needs an input file to get the vendor
 # geometry and will be used for all analyses.
