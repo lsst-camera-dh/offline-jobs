@@ -210,14 +210,14 @@ for sflat_file in superflat_files:
     # Profiles of serial CTE in overscan region
     mask_files = eotestUtils.glob_mask_files()
     mask_files = [item for item in mask_files if item.find('rolloff') == -1]
-    plots.serial_cte_profiles(flux_level, sflat_file, mask_files)
+    plots.cte_profiles(flux_level, sflat_file, mask_files, serial=True)
     outfile = '%(sensor_id)s_serial_oscan_%(flux_level)s.png' % locals()
     plt.savefig(outfile)
 
     # Profiles of parallel CTE in overscan region
     mask_files = eotestUtils.glob_mask_files()
     mask_files = [item for item in mask_files if item.find('rolloff') == -1]
-    plots.parallel_cte_profiles(flux_level, sflat_file, mask_files)
+    plots.cte_profiles(flux_level, sflat_file, mask_files, serial=False)
     outfile = '%(sensor_id)s_parallel_oscan_%(flux_level)s.png' % locals()
     plt.savefig(outfile)
 
