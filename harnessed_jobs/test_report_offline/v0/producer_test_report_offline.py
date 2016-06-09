@@ -3,21 +3,21 @@ import os
 import shutil
 from collections import OrderedDict
 
-#  This is needed so that pylab can write to .matplotlib
+# This is needed so that matplotlib can write to .matplotlib
 os.environ['MPLCONFIGDIR'] = os.curdir
 import matplotlib
-
 # For batch-processing, use the AGG backend to avoid needing an X11
 # connection.
 matplotlib.use('Agg')
 
 import json
-import pyfits
-import pylab
+import astropy.io.fits as fits
+import matplotlib.pyplot as plt
 import lsst.eotest.sensor as sensorTest
 import lsst.eotest.image_utils as imutils
 from lcatr.harness.helpers import dependency_glob
 import siteUtils
+import eotestUtils
 
 def processName_dependencyGlob(*args, **kwds):
     if kwds.has_key('jobname'):
@@ -77,8 +77,8 @@ def append_prnu(results_file, prnu_file):
     Copy the PRNU_RESULTS extension from the prnu job to the final
     results file.
     """
-    results = pyfits.open(results_file)
-    prnu = pyfits.open(prnu_file)
+    results = fits.open(results_file)
+    prnu = fits.open(prnu_file)
     results.append(prnu['PRNU_RESULTS'])
     results.writeto(results_file, clobber=True)
 
@@ -126,23 +126,23 @@ plots.specs.add_job_ids(summary_files)
 fe55_file = processName_dependencyGlob('%s_psf_results*.fits' % sensor_id,
                                        jobname='fe55_offline')[0]
 plots.fe55_dists(fe55_file=fe55_file)
-pylab.savefig('%s_fe55_dists.png' % sensor_id)
+plt.savefig('%s_fe55_dists.png' % sensor_id)
 
 # PSF distributions from Fe55 fits
 plots.psf_dists(fe55_file=fe55_file)
-pylab.savefig('%s_psf_dists.png' % sensor_id)
+plt.savefig('%s_psf_dists.png' % sensor_id)
 
 # Photon Transfer Curves
 ptc_file = processName_dependencyGlob('%s_ptc.fits' % sensor_id,
                                       jobname='ptc_offline')[0]
 plots.ptcs(ptc_file=ptc_file)
-pylab.savefig('%s_ptcs.png' % sensor_id)
+plt.savefig('%s_ptcs.png' % sensor_id)
 
 detresp_file = processName_dependencyGlob('%s_det_response.fits' % sensor_id,
                                           jobname='flat_pairs_offline')[0]
 # Full well plots
 plots.full_well(ptc_file=ptc_file, detresp_file=detresp_file)
-pylab.savefig('%s_full_well.png' % sensor_id)
+plt.savefig('%s_full_well.png' % sensor_id)
 
 # Linearity plots
 if siteUtils.getCcdVendor() == 'ITL':
@@ -154,18 +154,18 @@ if siteUtils.getCcdVendor() == 'ITL':
         pass
 
 plots.linearity(detresp_file=detresp_file)
-pylab.savefig('%s_linearity.png' % sensor_id)
+plt.savefig('%s_linearity.png' % sensor_id)
 
 plots.linearity_resids(detresp_file=detresp_file)
-pylab.savefig('%s_linearity_resids.png' % sensor_id)
+plt.savefig('%s_linearity_resids.png' % sensor_id)
 
 # System Gain per segment
 plots.gains()
-pylab.savefig('%s_gains.png' % sensor_id)
+plt.savefig('%s_gains.png' % sensor_id)
 
 # Read Noise per segment
 plots.noise()
-pylab.savefig('%s_noise.png' % sensor_id)
+plt.savefig('%s_noise.png' % sensor_id)
 
 # Fe55 zoom
 fe55_zoom = processName_dependencyGlob('%s_fe55_zoom.png' % sensor_id,
@@ -178,21 +178,21 @@ bias_files = processName_dependencyGlob('%s_mean_bias_*.fits' % sensor_id,
                                         jobname='fe55_offline')
 if bias_files:
     sensorTest.plot_flat(bias_files[0], title='%s, mean bias frame' % sensor_id)
-    pylab.savefig('%s_mean_bias.png' % sensor_id)
+    plt.savefig('%s_mean_bias.png' % sensor_id)
 
 # Mosaicked image of medianed dark for bright_defects job.
 dark_bd_file = processName_dependencyGlob('%s_median_dark_bp.fits' % sensor_id,
                                           jobname='bright_defects_offline')[0]
 sensorTest.plot_flat(dark_bd_file,
                      title='%s, medianed dark for bright defects analysis' % sensor_id)
-pylab.savefig('%s_medianed_dark.png' % sensor_id)
+plt.savefig('%s_medianed_dark.png' % sensor_id)
 
 # Superflat for dark defects job
 sflat_dd_file = processName_dependencyGlob('%s_median_sflat.fits' % sensor_id,
                                            jobname='dark_defects_offline')[0]
 sensorTest.plot_flat(sflat_dd_file,
                      title='%s, superflat for dark defects analysis' % sensor_id)
-pylab.savefig('%s_superflat_dark_defects.png' % sensor_id)
+plt.savefig('%s_superflat_dark_defects.png' % sensor_id)
 
 # Superflats for high and low flux levels
 superflat_files = sorted(processName_dependencyGlob('%s_superflat_*.fits' % sensor_id, jobname='cte_offline'))
@@ -205,21 +205,35 @@ for sflat_file in superflat_files:
                          title='%(sensor_id)s, CTE supeflat, %(flux_level)s flux ' % locals())
     outfile = os.path.basename(sflat_file).replace('.fits', '.png')
     print outfile
-    pylab.savefig(outfile)
+    plt.savefig(outfile)
+
+    # Profiles of serial CTE in overscan region
+    mask_files = eotestUtils.glob_mask_files()
+    mask_files = [item for item in mask_files if item.find('rolloff') == -1]
+    plots.cte_profiles(flux_level, sflat_file, mask_files, serial=True)
+    outfile = '%(sensor_id)s_serial_oscan_%(flux_level)s.png' % locals()
+    plt.savefig(outfile)
+
+    # Profiles of parallel CTE in overscan region
+    mask_files = eotestUtils.glob_mask_files()
+    mask_files = [item for item in mask_files if item.find('rolloff') == -1]
+    plots.cte_profiles(flux_level, sflat_file, mask_files, serial=False)
+    outfile = '%(sensor_id)s_parallel_oscan_%(flux_level)s.png' % locals()
+    plt.savefig(outfile)
 
 # Quantum Efficiency
 plots.qe(qe_file=qe_file)
-pylab.savefig('%s_qe.png' % sensor_id)
+plt.savefig('%s_qe.png' % sensor_id)
 
 # Crosstalk matrix
 if xtalk_file is not None:
     plots.crosstalk_matrix(xtalk_file=xtalk_file)
-    pylab.savefig('%s_crosstalk_matrix.png' % sensor_id)
+    plt.savefig('%s_crosstalk_matrix.png' % sensor_id)
 
 # Flat fields at wavelengths nearest the centers of the standard bands
 wl_file_path = os.path.split(wl_files[0])[0]
 plots.flat_fields(wl_file_path)
-pylab.savefig('%s_flat_fields.png' % sensor_id)
+plt.savefig('%s_flat_fields.png' % sensor_id)
 
 # Software versions
 software_versions = OrderedDict()
