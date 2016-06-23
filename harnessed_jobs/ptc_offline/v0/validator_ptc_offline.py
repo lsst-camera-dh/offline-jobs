@@ -18,7 +18,7 @@ amps = data['AMP']
 ptc_gains = data['PTC_GAIN']
 ptc_gain_errors = data['PTC_GAIN_ERROR']
 for amp, gain, gain_error in zip(amps, ptc_gains, ptc_gain_errors):
-    results.append(lcatr.schema.valid(lcatr.schema.get('ptc'),
+    results.append(lcatr.schema.valid(lcatr.schema.get('ptc_offline'),
                                       amp=amp, ptc_gain=gain,
                                       ptc_gain_error=gain_error))
 
