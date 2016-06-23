@@ -47,6 +47,8 @@ class JsonRepackager(object):
                      ('cti_high_parallel_error', 'CTI_HIGH_PARALLEL_ERROR'),
                      ('full_well', 'FULL_WELL'),
                      ('max_frac_dev', 'MAX_FRAC_DEV'),
+                     ('ptc_gain', 'PTC_GAIN'),
+                     ('ptc_gain_error', 'PTC_GAIN_ERROR'),
                      ))
     def __init__(self, outfile='eotest_results.fits', namps=16):
         """
