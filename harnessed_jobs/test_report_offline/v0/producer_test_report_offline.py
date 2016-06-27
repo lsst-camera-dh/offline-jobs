@@ -47,6 +47,8 @@ class JsonRepackager(object):
                      ('cti_high_parallel_error', 'CTI_HIGH_PARALLEL_ERROR'),
                      ('full_well', 'FULL_WELL'),
                      ('max_frac_dev', 'MAX_FRAC_DEV'),
+                     ('ptc_gain', 'PTC_GAIN'),
+                     ('ptc_gain_error', 'PTC_GAIN_ERROR'),
                      ))
     def __init__(self, outfile='eotest_results.fits', namps=16):
         """
@@ -215,8 +217,6 @@ for sflat_file in superflat_files:
     plt.savefig(outfile)
 
     # Profiles of parallel CTE in overscan region
-    mask_files = eotestUtils.glob_mask_files()
-    mask_files = [item for item in mask_files if item.find('rolloff') == -1]
     plots.cte_profiles(flux_level, sflat_file, mask_files, serial=False)
     outfile = '%(sensor_id)s_parallel_oscan_%(flux_level)s.png' % locals()
     plt.savefig(outfile)
