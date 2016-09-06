@@ -30,9 +30,23 @@ try:
 except IndexError:
     pass
 #
-# Persist the zoom of segment 1 of the Fe55 exposure
+# Common metadata for persisted non-FITS files.
 #
-results.append(lcatr.schema.fileref.make('%(sensor_id)s_fe55_zoom.png' % locals()))
+md = siteUtils.DataCatalogMetadata(CCD_MANU=siteUtils.getCcdVendor(),
+                                   LSST_NUM=sensor_id,
+                                   producer='SR-EOT-02',
+                                   TESTTYPE='FE55',
+                                   TEST_CATEGORY='EO')
+#
+# Persist various png files.
+#
+png_files = glob.glob('%(sensor_id)s_fe55*.png' % locals())
+png_filerefs = []
+for png_file in png_files:
+    dp = png_file[len(sensor_id) + 1:-len('.png')]
+    png_filerefs.append(lcatr.schema.fileref.make(png_file,
+                                                  metadata=md(DATA_PRODUCT=dp)))
+results.extend(png_filerefs)
 
 data = sensorTest.EOTestResults(gain_file)
 amps = data['AMP']
