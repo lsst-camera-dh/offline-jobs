@@ -24,7 +24,6 @@ results.extend([lcatr.schema.fileref.make(item,
                                           metadata=md(DATA_PRODUCT=eotestUtils.png_data_product(item, sensor_id)))
                 for item in png_files])
 
-
 test_report = '%s_eotest_report.pdf' % sensor_id
 results.append(lcatr.schema.fileref.make(test_report,
                                          metadata=md(DATA_PRODUCT='EOTEST_REPORT')))

@@ -4,9 +4,9 @@ import os
 # This is needed so that matplotlib can write to .matplotlib
 os.environ['MPLCONFIGDIR'] = os.curdir
 import matplotlib
-# For batch-processing, use the AGG backend to avoid needing an X11
+# For batch-processing, use the cairo backend to avoid needing an X11
 # connection.
-matplotlib.use('Agg')
+matplotlib.use('cairo')
 
 import matplotlib.pyplot as plt
 import lsst.eotest.image_utils as imutils
@@ -43,8 +43,15 @@ plt.savefig('%(sensor_id)s_fe55_zoom.png' % locals())
 # Perform analysis of 9-pixel statistics for Fe55 charge clusters.
 #
 pixel_stats = sensorTest.Fe55PixelStats(fe55_files, sensor_id=sensor_id)
+pixel_stats.pixel_hists(pix0='p3', pix1='p5')
+plt.savefig('%(sensor_id)s_fe55_p3_p5_hists.png' % locals())
+
+pixel_stats.pixel_diff_profile(pixel_coord='x', pix0='p3', pix1='p5')
+plt.savefig('%(sensor_id)s_fe55_p3_p5_profiles.png' % locals())
+
 pixel_stats.apflux_profile()
 plt.savefig('%(sensor_id)s_fe55_apflux_serial.png' % locals())
+
 pixel_stats.apflux_profile(pixel_coord='y')
 plt.savefig('%(sensor_id)s_fe55_apflux_parallel.png' % locals())
 
