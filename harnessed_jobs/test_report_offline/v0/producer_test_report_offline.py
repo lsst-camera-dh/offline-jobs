@@ -8,7 +8,7 @@ os.environ['MPLCONFIGDIR'] = os.curdir
 import matplotlib
 # For batch-processing, use the AGG backend to avoid needing an X11
 # connection.
-matplotlib.use('cairo')
+matplotlib.use('Agg')
 
 import json
 import astropy.io.fits as fits

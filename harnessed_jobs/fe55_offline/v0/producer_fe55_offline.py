@@ -4,9 +4,9 @@ import os
 # This is needed so that matplotlib can write to .matplotlib
 os.environ['MPLCONFIGDIR'] = os.curdir
 import matplotlib
-# For batch-processing, use the cairo backend to avoid needing an X11
+# For batch-processing, use the Agg backend to avoid needing an X11
 # connection.
-matplotlib.use('cairo')
+matplotlib.use('Agg')
 
 import matplotlib.pyplot as plt
 import lsst.eotest.image_utils as imutils
