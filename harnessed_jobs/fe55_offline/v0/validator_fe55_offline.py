@@ -43,7 +43,7 @@ md = siteUtils.DataCatalogMetadata(CCD_MANU=siteUtils.getCcdVendor(),
 png_files = glob.glob('%(sensor_id)s_fe55*.png' % locals())
 png_filerefs = []
 for png_file in png_files:
-    dp = png_file[len(sensor_id) + 1:-len('.png')]
+    dp = eotestUtils.png_data_product(png_file, sensor_id)
     png_filerefs.append(lcatr.schema.fileref.make(png_file,
                                                   metadata=md(DATA_PRODUCT=dp)))
 results.extend(png_filerefs)
