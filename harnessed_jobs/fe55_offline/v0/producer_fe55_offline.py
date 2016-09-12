@@ -13,6 +13,7 @@ import lsst.eotest.image_utils as imutils
 import lsst.eotest.sensor as sensorTest
 import siteUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 fe55_files = siteUtils.datacatalog_glob('*_fe55_fe55_*.fits',
                                         testtype="FE55",

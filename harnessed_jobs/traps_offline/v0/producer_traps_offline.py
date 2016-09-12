@@ -4,6 +4,7 @@ import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 
 trap_file = siteUtils.datacatalog_glob('*_trap_ppump_*.fits',

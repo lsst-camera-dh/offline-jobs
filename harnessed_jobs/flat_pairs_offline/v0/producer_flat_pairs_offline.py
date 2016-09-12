@@ -3,6 +3,7 @@ import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 
 ccd_vendor = siteUtils.getCcdVendor()

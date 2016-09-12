@@ -3,6 +3,7 @@ import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 sflat_files = siteUtils.datacatalog_glob('*_sflat_500_flat_H*.fits',
                                          testtype='SFLAT_500',
