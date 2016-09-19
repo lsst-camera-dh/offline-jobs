@@ -32,7 +32,7 @@ except IndexError:
 #
 # Common metadata for persisted non-FITS files.
 #
-md = siteUtils.DataCatalogMetadata(CCD_MANU=siteUtils.getCcdVendor(),
+md = siteUtils.DataCatalogMetadata(CCD_MANU=siteUtils.getCcdVendor().upper(),
                                    LSST_NUM=sensor_id,
                                    producer='SR-EOT-02',
                                    TESTTYPE='FE55',
