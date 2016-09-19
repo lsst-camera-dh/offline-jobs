@@ -5,6 +5,7 @@ import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 lambda_files = siteUtils.datacatalog_glob('*_lambda_flat_*.fits',
                                           testtype='LAMBDA',
@@ -19,7 +20,6 @@ try:
     header = pyfits.open(lambda_files[0])[0].header
     vendor_data = ((header['ORIGIN'].find('e2v') != -1) or
                    (header['ORIGIN'].find('UAITL') != -1))
-    
 except:
     vendor_data = False
 

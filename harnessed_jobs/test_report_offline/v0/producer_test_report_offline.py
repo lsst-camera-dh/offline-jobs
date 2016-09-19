@@ -261,6 +261,13 @@ wl_file_path = os.path.split(wl_files[0])[0]
 plots.flat_fields(wl_file_path)
 plt.savefig('%s_flat_fields.png' % sensor_id)
 
+# eTraveler activityIds
+job_ids = siteUtils.aggregate_job_ids()
+print "Job ids:"
+for key, value in job_ids.items():
+    print key, value
+print
+
 # Software versions
 software_versions = OrderedDict()
 summary_lims_file = processName_dependencyGlob('summary.lims',
@@ -276,5 +283,6 @@ for result in foo:
 
 # Create the test report pdf.
 report = sensorTest.EOTestReport(plots, wl_file_path,
-                                 software_versions=software_versions)
+                                 software_versions=software_versions,
+                                 job_ids=job_ids)
 report.make_pdf()

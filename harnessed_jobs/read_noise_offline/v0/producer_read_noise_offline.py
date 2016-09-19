@@ -6,6 +6,7 @@ import siteUtils
 import eotestUtils
 import vendorDataUtils
 
+siteUtils.aggregate_job_ids()
 sensor_id = siteUtils.getUnitId()
 
 # Use Fe55 exposures and the overscan region instead of the bias
