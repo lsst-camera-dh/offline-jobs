@@ -1,9 +1,15 @@
 #!/usr/bin/env python
+import sys
 import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
 siteUtils.aggregate_job_ids()
+
+# Skip analysis for e2v, since they do not provide pairs of flats.
+if siteUtils.getCcdVendor() in ('e2v', 'E2V'):
+    sys.exit(0)
+
 sensor_id = siteUtils.getUnitId()
 flat_files = siteUtils.datacatalog_glob('*_flat*flat?_*.fits',
                                         testtype='FLAT',
