@@ -14,6 +14,26 @@ import siteUtils
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
+_e2v_system_noise = """# 1x gain data emailed from e2v
+# Amp    system noise (ADU rms)
+  1         1.146969
+  2         1.2077
+  3         1.250879
+  4         1.177835
+  5         1.230289
+  6         1.151802
+  7         1.270456
+  8         1.166207
+  9         1.167508
+  10        1.164649
+  11        1.112257
+  12        1.169129
+  13        1.234604
+  14        1.173417
+  15        1.260886
+  16        1.102168
+"""
+
 def validate(schema, **kwds):
     "More compact call to lcatr.schema.valid"
     return lcatr.schema.valid(lcatr.schema.get(schema), **kwds)
@@ -375,11 +395,10 @@ class e2vResults(VendorResults):
             results.append(validate(job, amp=amp, read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
-#        outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
-#        with open(outfile, 'w') as output:
-#            output.write('# Amp    system noise (ADU rms)\n')
-#            for amp, system_noise in system_noise_data.items():
-#                output.write('  %i        %f\n' % (amp, system_noise))
+        # Write the 1x gain system noise values sent by email from e2v.
+        outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
+        with open(outfile, 'w') as output:
+            output.write(_e2v_system_noise)
         return results
 
     def bright_defects(self):
