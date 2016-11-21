@@ -135,10 +135,16 @@ plots.psf_dists(fe55_file=fe55_file)
 plt.savefig('%s_psf_dists.png' % sensor_id)
 
 # Photon Transfer Curves
-ptc_file = processName_dependencyGlob('%s_ptc.fits' % sensor_id,
-                                      jobname='ptc_offline')[0]
-plots.ptcs(ptc_file=ptc_file)
-plt.savefig('%s_ptcs.png' % sensor_id)
+try:
+    ptc_file = processName_dependencyGlob('%s_ptc.fits' % sensor_id,
+                                          jobname='ptc_offline')[0]
+    plots.ptcs(ptc_file=ptc_file)
+    plt.savefig('%s_ptcs.png' % sensor_id)
+except IndexError:
+    # e2v data packages don't include pairs of flats so we cannot run
+    # the PTC analysis on their data.
+    ptc_file = None
+    pass
 
 detresp_file = processName_dependencyGlob('%s_det_response.fits' % sensor_id,
                                           jobname='flat_pairs_offline')[0]

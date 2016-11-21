@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+import sys
 import lsst.eotest.sensor as sensorTest
 import lcatr.schema
 import siteUtils
 import eotestUtils
+
+if siteUtils.getCcdVendor() in ('e2v', 'E2V'):
+    # Effectively do nothing since e2v does not provide pairs of flats.
+    lcatr.schema.write_file([])
+    lcatr.schema.validate_file()
+    sys.exit(0)
 
 sensor_id = siteUtils.getUnitId()
 ptc_results = '%s_ptc.fits' % sensor_id
