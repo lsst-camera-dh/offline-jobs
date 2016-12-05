@@ -4,6 +4,7 @@
     'schema_version' : 0,
     'mounting_grade' : str,
     'height_grade' : str,
+    'znom' : float,
     'zmean' : float,
     'zmedian' : float,
     'zsdev' : float,

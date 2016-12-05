@@ -1,0 +1,57 @@
+[Info]
+ITLSN = 20862
+ID = 068
+DataFile = metrology.txt
+
+[Mounting]
+Grade = PASS
+
+[Height]
+ZNom = 12.9920
+Units = mm
+HeightHalfBandSpec = 0.0090
+ZMean = 12.9921
+ZMedian = 12.9922
+ZSdev = 0.0011
+Z95 = 12.9917
+Z95HalfBand = 0.0020
+ZQuan_0.0   =  12.9877
+ZQuan_0.5   =  12.9889
+ZQuan_1.0   =  12.9892
+ZQuan_2.5   =  12.9897
+ZQuan_25.0  =  12.9914
+ZQuan_50.0  =  12.9922
+ZQuan_75.0  =  12.9928
+ZQuan_97.5  =  12.9938
+ZQuan_99.0  =  12.9939
+ZQuan_99.5  =  12.9941
+ZQuan_100.0 =  12.9945
+
+[Flatness]
+Grade = PASS
+Units = um
+FlatnessHalfBandSpec_95 = 5.0
+FlatnessHalfBand_95 = 1.5
+FSdev = 0.7
+FMin = -3.7
+FMax = 1.5
+F95 = -0.4
+FQuan_0.0   =   -3.7
+FQuan_0.5   =   -2.8
+FQuan_1.0   =   -2.5
+FQuan_2.5   =   -1.8
+FQuan_25.0  =   -0.3
+FQuan_50.0  =    0.1
+FQuan_75.0  =    0.5
+FQuan_97.5  =    1.1
+FQuan_99.0  =    1.3
+FQuan_99.5  =    1.3
+FQuan_100.0 =    1.5
+
+[Files]
+ColorZPlot = ColorZPlot.jpg
+WiskerPlot = WhiskerPlot.jpg
+HistogramHeightPlot = HistogramHeightPlot.jpg
+HistogramFlatnessPlot = HistogramFlatnessPlot.jpg
+SurfacePlot = SurfacePlot.jpg
+
