@@ -1,0 +1,49 @@
+[Info]
+DataFile = qe.txt
+Grade = PASS
+CalScale = 1.340
+Temperature = -95.0
+Units = C
+Note1 = Flux @ sensor is Flux*Throughput/CalScal
+Note2 = Flux is [photons/sec/mm^2@diode]
+
+[QE]
+DataFormat = Wave[nm]   QE         Mean[DN]   ExpTime[s] Flux       Throughput  Grade Spec
+QE_00 =      330.0      0.555      19725      28.613     1.755e+07  0.920     
+QE_01 =      350.0      0.674      19704      2.612      1.629e+08  0.920     
+QE_02 =      370.0      0.811      19765      1.800      1.973e+08  0.920     
+QE_03 =      450.0      0.887      19686      0.584      5.537e+08  0.920     
+QE_04 =      500.0      0.868      19706      0.653      5.061e+08  0.920     
+QE_05 =      620.0      0.930      19673      0.196      1.572e+09  0.920     
+QE_06 =      750.0      0.999      19718      0.243      1.183e+09  0.920     
+QE_07 =      870.0      0.932      19732      0.138      2.233e+09  0.920     
+QE_08 =      1000.0     0.328      19712      0.213      4.110e+09  0.920     
+
+[QE-Band]
+DataFormat = Band       QE         Grade Spec
+QeBand_00 =  u          0.680       PASS 0.410     
+QeBand_01 =  g          0.878       PASS 0.780     
+QeBand_02 =  r          0.930       PASS 0.830     
+QeBand_03 =  i          0.999       PASS 0.820     
+QeBand_04 =  z          0.932       PASS 0.750     
+QeBand_05 =  y          0.328       PASS 0.210     
+
+[SystemGain]
+Units = e/DN
+Gain_00 =  3.26
+Gain_01 =  2.29
+Gain_02 =  3.26
+Gain_03 =  3.25
+Gain_04 =  3.26
+Gain_05 =  3.21
+Gain_06 =  2.39
+Gain_07 =  2.97
+Gain_08 =  2.91
+Gain_09 =  3.90
+Gain_10 =  2.92
+Gain_11 =  2.96
+Gain_12 =  2.97
+Gain_13 =  2.98
+Gain_14 =  2.26
+Gain_15 =  2.90
+
