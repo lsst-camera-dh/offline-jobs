@@ -318,9 +318,8 @@ class ItlResults(VendorResults):
             results.append(validate(job, band=band, QE=qe_values[band]))
         return results
 
-    def metrology(self):
+    def _metrology_test_results(self, job='metrology'):
         "Process the metrology results."
-        job = 'metrology'
         test_results = {}
         try:
             test_results['mounting_grade'] = dict(self[job].items('Mounting'))['grade']
@@ -336,13 +335,18 @@ class ItlResults(VendorResults):
             test_results['flatness_grade'] = kwds['grade']
         except KeyError:
             test_results['flatness_grade'] = 'N/A'
-        schema_keys = 'zmean zmedian zsdev z95halfband flatnesshalfband_95'.split()
+        schema_keys = 'znom zmean zmedian zsdev z95halfband flatnesshalfband_95'.split()
         # Omit key/value pairs not in the schema.
         for key in schema_keys:
             try:
                 test_results[key] = kwds[key]
             except KeyError: # fill with sentinel value
                 test_results[key] = '-999'
+        return test_results
+
+    def metrology(self):
+        "Process the metrology results."
+        test_results = self._metrology_test_results(job='metrology')
         results = [validate('metrology_vendorIngest', **test_results)]
         return results
 

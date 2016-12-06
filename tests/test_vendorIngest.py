@@ -52,6 +52,25 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(met_files[0], os.path.join(rootdir, self.non_std_fn))
         os.remove(self.non_std_fn)
 
+    def test_ITL_metrology_results(self):
+        """
+        Test the persisting of the ITL results harvested from the
+        delivered metrology.txt file.
+        """
+        vendorDataDir = '.'
+        vendor_results = ItlResults(vendorDataDir)
+        test_results = vendor_results._metrology_test_results()
+        self.assertEqual(test_results['mounting_grade'], 'PASS')
+        self.assertEqual(test_results['height_grade'], 'N/A')
+        self.assertEqual(test_results['flatness_grade'], 'PASS')
+        self.assertEqual(test_results['znom'], '12.9920')
+        self.assertEqual(test_results['zmean'], '12.9921')
+        self.assertEqual(test_results['zmedian'], '12.9922')
+        self.assertEqual(test_results['zsdev'], '0.0011')
+        self.assertEqual(test_results['z95halfband'], '0.0020')
+        self.assertEqual(test_results['flatnesshalfband_95'], '1.5')
+
+
 class ITL_EO_files_TestCase(unittest.TestCase):
     """
     Test the parsing of the ITL vendor results.
