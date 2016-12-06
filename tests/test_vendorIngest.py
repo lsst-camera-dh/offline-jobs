@@ -70,5 +70,27 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(test_results['z95halfband'], '0.0020')
         self.assertEqual(test_results['flatnesshalfband_95'], '1.5')
 
+
+class ITL_EO_files_TestCase(unittest.TestCase):
+    """
+    Test the parsing of the ITL vendor results.
+    """
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_qe_values(self):
+        vendorDataDir = '.'
+        vendor_results = ItlResults(vendorDataDir)
+        qe_values = vendor_results._qe_values()
+        self.assertAlmostEqual(qe_values['u'], 68.0)
+        self.assertAlmostEqual(qe_values['g'], 87.75)
+        self.assertAlmostEqual(qe_values['r'], 93.0)
+        self.assertAlmostEqual(qe_values['i'], 99.9)
+        self.assertAlmostEqual(qe_values['z'], 93.2)
+        self.assertAlmostEqual(qe_values['y'], 32.8)
+
 if __name__ == '__main__':
     unittest.main()

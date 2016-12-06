@@ -290,9 +290,8 @@ class ItlResults(VendorResults):
         "Process the PTC results."
         return []
 
-    def qe_analysis(self):
+    def _qe_values(self, job='qe_analysis'):
         "Process the QE results."
-        job = 'qe_analysis'
         qe_data = dict(self[job].items('QE'))
         qe_results = dict((band, []) for band in self.qe_band_passes)
         for key, value in qe_data.items():
@@ -303,10 +302,20 @@ class ItlResults(VendorResults):
                 for band, wl_range in self.qe_band_passes.items():
                     if wl >= wl_range[0] and wl <= wl_range[1]:
                         qe_results[band].append(qe)
-        results = []
+        qe_values = {}
         for band in qe_results:
-            results.append(validate(job, band=band,
-                                    QE=np.average(qe_results[band])))
+            # Multiply average QE values by 100. to convert them to
+            # percentages.
+            qe_values[band] = QE=100.*np.average(qe_results[band])
+        return qe_values
+
+    def qe_analysis(self):
+        "Process the QE results."
+        job = 'qe_analysis'
+        qe_values = self._qe_values(job=job)
+        results = []
+        for band in qe_values:
+            results.append(validate(job, band=band, QE=qe_values[band]))
         return results
 
     def _metrology_test_results(self, job='metrology'):
