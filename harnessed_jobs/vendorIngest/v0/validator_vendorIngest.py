@@ -14,6 +14,9 @@ import siteUtils
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
+__all__ = ['ItlResults', 'ITL_metrology_files',
+           'e2vResults', 'e2v_metrology_files']
+
 _e2v_system_noise = """# 1x gain data emailed from e2v
 # Amp    system noise (ADU rms)
   1         1.146969
