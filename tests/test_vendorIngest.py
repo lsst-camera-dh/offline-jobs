@@ -5,7 +5,28 @@ import os
 import sys
 import unittest
 sys.path.insert(0, '../harnessed_jobs/vendorIngest/v0')
-from validator_vendorIngest import ITL_metrology_files, ItlResults
+from validator_vendorIngest import ITL_metrology_files, ItlResults, \
+    e2vResults, e2v_metrology_files
+
+class e2vResults_TestCase(unittest.TestCase):
+    """
+    Test case class for e2v EO vendor data.
+    """
+    def setUp(self):
+        pass
+
+    def tearDoown(self):
+        pass
+
+    def test_linearity_values(self):
+        vendorDataDir = '.'
+        vendor_results = e2vResults(vendorDataDir)
+        results = vendor_results.flat_pairs()
+        max_frac_devs = dict([(item['amp'], item['max_frac_dev'])
+                              for item in results])
+        self.assertAlmostEqual(0.135196/100., max_frac_devs[1])
+        self.assertAlmostEqual(0.119365/100., max_frac_devs[8])
+
 
 class ITL_metrology_files_TestCase(unittest.TestCase):
     """

@@ -14,6 +14,9 @@ import siteUtils
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
+__all__ = ['ItlResults', 'ITL_metrology_files',
+           'e2vResults', 'e2v_metrology_files']
+
 _e2v_system_noise = """# 1x gain data emailed from e2v
 # Amp    system noise (ADU rms)
   1         1.146969
@@ -491,7 +494,8 @@ class e2vResults(VendorResults):
         results = []
         for amp, tokens in self._csv_data('\*FWC\*Multiple\*Image\*Summary\*.csv'):
             full_well = float(tokens[0])
-            max_frac_dev = float(tokens[1])
+            # convert e2v number from percentages to fractions.
+            max_frac_dev = float(tokens[1])/100.
             results.append(validate(job, amp=amp,
                                     full_well=full_well,
                                     max_frac_dev=max_frac_dev))
