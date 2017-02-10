@@ -491,7 +491,8 @@ class e2vResults(VendorResults):
         results = []
         for amp, tokens in self._csv_data('\*FWC\*Multiple\*Image\*Summary\*.csv'):
             full_well = float(tokens[0])
-            max_frac_dev = float(tokens[1])
+            # convert e2v number from percentages to fractions.
+            max_frac_dev = float(tokens[1])/100.
             results.append(validate(job, amp=amp,
                                     full_well=full_well,
                                     max_frac_dev=max_frac_dev))
