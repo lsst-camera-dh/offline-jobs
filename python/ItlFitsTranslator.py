@@ -9,6 +9,7 @@ import ConfigParser
 import datetime
 import scipy.constants
 import astropy.io.fits as fits
+import astropy.time
 from VendorFitsTranslator import VendorFitsTranslator
 
 __all__ = ['ItlFitsTranslator']

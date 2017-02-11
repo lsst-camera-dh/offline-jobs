@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function
 import os
 import datetime
 import astropy.io.fits as fits
+import astropy.time
 from VendorFitsTranslator import VendorFitsTranslator
 
 __all__ = ['e2vFitsTranslator']

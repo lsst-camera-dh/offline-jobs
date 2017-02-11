@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import
 import os
 import glob
 import shutil
+import itertools
 import unittest
 import astropy.io.fits as fits
 from ItlFitsTranslator import ItlFitsTranslator
@@ -19,6 +20,9 @@ if not os.path.isfile(_itl_8amp_test_file):
     _itl_8amp_test_file = None
 
 _wls = (350, 450, 500, 750, 800, 1000)
+_date_time_pairs = [x for x in itertools.product(['2017-02-10', '2017-02-11'],
+                                                 ['17:52:10.01', '18:55:23.11',
+                                                  '19:30:03'])]
 
 class DummyItlVendorFitsTranslator(ItlFitsTranslator):
     "Dummy subclass to provide stubs for base class template methods."
@@ -28,7 +32,7 @@ class DummyItlVendorFitsTranslator(ItlFitsTranslator):
                                                            outputBaseDir)
 
     def translate(self, infile, test_type, image_type, seqno,
-                  time_stamp=None, verbose=True):
+                  time_stamp=None, verbose=False):
         "Re-write the input FITS file with the conforming name."
         lsst_num = self.lsst_num
         time_stamp = '000'
@@ -46,7 +50,7 @@ class Dummye2vVendorFitsTranslator(e2vFitsTranslator):
                                                            outputBaseDir)
 
     def translate(self, infile, test_type, image_type, seqno,
-                  time_stamp=None, verbose=True):
+                  time_stamp=None, verbose=False):
         "Re-write the input FITS file with the conforming name."
         lsst_num = self.lsst_num
         time_stamp = '000'
@@ -82,6 +86,8 @@ class VendorTranslatorTestCase(unittest.TestCase):
                 hdulist[0].header['EXPTIME'] = float(i*0.3)
             hdulist[0].header['MONOWL'] = wl
             hdulist[0].header['MONDIODE'] = 1
+            hdulist[0].header['DATE-OBS'] = _date_time_pairs[i][0]
+            hdulist[0].header['TIME-OBS'] = _date_time_pairs[i][1]
             hdulist.writeto(filename, clobber=True)
             self._ITL_files.append(filename)
 
@@ -94,30 +100,35 @@ class VendorTranslatorTestCase(unittest.TestCase):
             hdulist.append(fits.PrimaryHDU())
             hdulist[0].header['WAVELEN'] = wl
             hdulist[0].header['MONOWL'] = wl
+            hdulist[0].header['DATE-OBS'] = 'T'.join(_date_time_pairs[i])
             hdulist.writeto(filename, clobber=True)
             self._e2v_files.append(filename)
 
     def test_lambda_scan_for_ITL(self):
         "Test that the zero exposure time frame is not translated."
         translator = DummyItlVendorFitsTranslator('000-00', '.', '.')
-        translator.lambda_scan(pattern='ITL_lambda_scan_*.fits')
+        translator.lambda_scan(pattern='ITL_lambda_scan_*.fits', verbose=False)
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
         self.assertEqual(len(files), 5)
         for item in files:
             header = fits.open(item)[0].header
             self.assertNotEqual(header['EXPTIME'], 0)
             self.assertNotEqual(header['MONOWL'], 350)
+        ref_date = 'T'.join(_date_time_pairs[1])[:len('2017-02-10T10:10:10')]
+        self.assertEqual(translator.date_obs, ref_date)
 
     def test_lambda_scan_for_e2v(self):
         "Test that all e2v files are expected."
         translator = Dummye2vVendorFitsTranslator('000-00', '.', '.')
-        translator.lambda_scan(pattern='e2v_lambda_scan_*.fits')
+        translator.lambda_scan(pattern='e2v_lambda_scan_*.fits', verbose=False)
         files = sorted(glob.glob('lambda/000/000-00_lambda_flat_*.fits'))
         self.assertEqual(len(files), 6)
         for i, item in enumerate(files):
             header = fits.open(item)[0].header
             self.assertRaises(KeyError, header.__getitem__, 'EXPTIME')
             self.assertEqual(header['MONOWL'], _wls[i])
+        ref_date = 'T'.join(_date_time_pairs[0])[:len('2017-02-10T10:10:10')]
+        self.assertEqual(translator.date_obs, ref_date)
 
 class ItlFitsTranslatorsTestCase(unittest.TestCase):
     """
@@ -140,7 +151,8 @@ class ItlFitsTranslatorsTestCase(unittest.TestCase):
         seqno = 16
         time_stamp = '000'
         self._itl_translator.translate(_itl_test_file, test_type, image_type,
-                                       seqno, time_stamp=time_stamp)
+                                       seqno, time_stamp=time_stamp,
+                                       verbose=False)
 
     @unittest.skipUnless(_itl_8amp_test_file,
                          "No 8 amp ITL test file available")
@@ -151,7 +163,8 @@ class ItlFitsTranslatorsTestCase(unittest.TestCase):
         seqno = 8
         time_stamp = '000'
         self._itl_translator.translate(_itl_8amp_test_file, test_type,
-                                       image_type, seqno, time_stamp=time_stamp)
+                                       image_type, seqno, time_stamp=time_stamp,
+                                       verbose=False)
 
 if __name__ == '__main__':
     unittest.main()
