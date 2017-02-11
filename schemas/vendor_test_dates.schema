@@ -1,0 +1,7 @@
+# -*- python -*-
+{
+    'schema_name' : 'vendor_test_dates',
+    'schema_version' : 0,
+    'EO_date' : str,
+    'MET_date' : str
+}
