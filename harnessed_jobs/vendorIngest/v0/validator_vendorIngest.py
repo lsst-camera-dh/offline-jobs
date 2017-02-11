@@ -641,7 +641,7 @@ def filerefs_for_metrology_files(met_files, lsstnum):
     return results
 
 if __name__ == '__main__':
-    results = [siteUtils.packageVersions()]
+    results = siteUtils.packageVersions()
 
     lsstnum = siteUtils.getUnitId()
 
