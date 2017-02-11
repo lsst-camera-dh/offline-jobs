@@ -6,7 +6,7 @@ import sys
 import unittest
 sys.path.insert(0, '../harnessed_jobs/vendorIngest/v0')
 from validator_vendorIngest import ITL_metrology_files, ItlResults, \
-    e2vResults, e2v_metrology_files
+    extract_ITL_metrology_date, e2vResults, e2v_metrology_files
 
 class e2vResults_TestCase(unittest.TestCase):
     """
@@ -79,7 +79,7 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         delivered metrology.txt file.
         """
         vendorDataDir = '.'
-        vendor_results = ItlResults(vendorDataDir)
+        vendor_results = ItlResults(vendorDataDir, verbose=False)
         test_results = vendor_results._metrology_test_results()
         self.assertEqual(test_results['mounting_grade'], 'PASS')
         self.assertEqual(test_results['height_grade'], 'N/A')
@@ -91,6 +91,16 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(test_results['z95halfband'], '0.0020')
         self.assertEqual(test_results['flatnesshalfband_95'], '1.5')
 
+    def test_extract_ITL_metrology_date(self):
+        """
+        Test the function to extract the date from the first line of
+        an ITL metrology scan file.
+        """
+        txtfile = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                               'itl_test_data', 'metrology',
+                               'ITL_metrology_scan_file_date_example')
+        self.assertEqual(extract_ITL_metrology_date(txtfile),
+                         '2016-10-28T11:32:43')
 
 class ITL_EO_files_TestCase(unittest.TestCase):
     """
@@ -104,7 +114,7 @@ class ITL_EO_files_TestCase(unittest.TestCase):
 
     def test_qe_values(self):
         vendorDataDir = '.'
-        vendor_results = ItlResults(vendorDataDir)
+        vendor_results = ItlResults(vendorDataDir, verbose=False)
         qe_values = vendor_results._qe_values()
         self.assertAlmostEqual(qe_values['u'], 68.0)
         self.assertAlmostEqual(qe_values['g'], 87.75)
