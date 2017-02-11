@@ -3,9 +3,11 @@
 from __future__ import absolute_import, print_function
 import os
 import sys
+import re
 import fnmatch
 import shutil
 import subprocess
+import datetime
 from collections import OrderedDict
 import ConfigParser
 import numpy as np
@@ -14,7 +16,7 @@ import siteUtils
 from ItlFitsTranslator import ItlFitsTranslator
 from e2vFitsTranslator import e2vFitsTranslator
 
-__all__ = ['ItlResults', 'ITL_metrology_files',
+__all__ = ['ItlResults', 'ITL_metrology_files', 'extract_ITL_metrology_date',
            'e2vResults', 'e2v_metrology_files']
 
 _e2v_system_noise = """# 1x gain data emailed from e2v
@@ -91,7 +93,7 @@ class ItlResults(VendorResults):
                         'prnu' : 'prnu.txt',
                         'qe_analysis' : 'qe.txt',
                         'metrology' : 'metrology.txt'}
-    def __init__(self, rootdir):
+    def __init__(self, rootdir, verbose=True):
         """
         Constructor.
         rootdir = Top level directory containing all of the results files.
@@ -99,9 +101,10 @@ class ItlResults(VendorResults):
         super(ItlResults, self).__init__()
         command = 'find %s/ -name \*.txt -print' % rootdir
         text_files = subprocess.check_output(command, shell=True).split()
-        print("Found ITL results files:")
-        for item in text_files:
-            print("  ", item)
+        if verbose:
+            print("Found ITL results files:")
+            for item in text_files:
+                print("  ", item)
         self.inverse_mapping = dict([(os.path.basename(path), path) for path
                                      in text_files])
         self._configs = {}
@@ -546,6 +549,26 @@ class e2vResults(VendorResults):
         "Process the metrology results."
         return []
 
+def extract_ITL_metrology_date(txtfile):
+    """
+    Extract the date from the first line of an ITL metrology scan file.
+    """
+    months = dict([(datetime.date(2017, m, 1).strftime('%B'), m)
+                   for m in range(1, 13)])
+    with open(txtfile) as fileobj:
+        line = fileobj.readline().strip('\n')
+    tokens = re.sub('[:, ]', ' ', line).split()[-8:]
+    hours = int(tokens[0])
+    if tokens[3] == 'PM':
+        hours += 12
+    minutes = int(tokens[1])
+    seconds = int(tokens[2])
+    month = months[tokens[5]]
+    day = int(tokens[6])
+    year = int(tokens[7])
+    obs_date = datetime.datetime(year, month, day, hours, minutes, seconds)
+    return obs_date.strftime('%Y-%m-%dT%H:%M:%S')
+
 def ITL_metrology_files(rootdir, expected_num=1):
     """
     Find the ITL metrology scan files assuming they have filenames of
@@ -618,7 +641,7 @@ def filerefs_for_metrology_files(met_files, lsstnum):
     return results
 
 if __name__ == '__main__':
-    results = [siteUtils.packageVersions()]
+    results = siteUtils.packageVersions()
 
     lsstnum = siteUtils.getUnitId()
 
@@ -629,10 +652,12 @@ if __name__ == '__main__':
         vendor = ItlResults(vendorDataDir)
         translator = ItlFitsTranslator(lsstnum, vendorDataDir, '.')
         met_files = ITL_metrology_files(vendorDataDir, expected_num=1)
+        MET_date = extract_ITL_metrology_date(met_files[0])
     else:
         vendor = e2vResults(vendorDataDir)
         translator = e2vFitsTranslator(lsstnum, vendorDataDir, '.')
         met_files = e2v_metrology_files(vendorDataDir, expected_num=1)
+        MET_date = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
     results.extend(vendor.run_all())
 
@@ -648,6 +673,10 @@ if __name__ == '__main__':
                         DATA_SOURCE='VENDOR')
         results.append(lcatr.schema.fileref.make(system_noise_file,
                                                  metadata=metadata))
+
+    results.append(validate('vendor_test_dates',
+                            EO_date=translator.date_obs,
+                            MET_date=MET_date))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()

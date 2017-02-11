@@ -5,6 +5,7 @@ from __future__ import absolute_import, print_function
 import os
 import datetime
 import astropy.io.fits as fits
+import astropy.time
 from VendorFitsTranslator import VendorFitsTranslator
 
 __all__ = ['e2vFitsTranslator']
@@ -23,6 +24,15 @@ class e2vFitsTranslator(VendorFitsTranslator):
         """
         super(e2vFitsTranslator, self).__init__(lsst_num, rootdir,
                                                 outputBaseDir)
+
+    def _extract_date_obs(self, hdulist):
+        """
+        e2v puts the date and time into the DATE-OBS FITS keyword using
+        isot format.
+        """
+        date_obs = hdulist[0].header['DATE-OBS'][:len('2017-02-10T16:44:00')]
+        time = astropy.time.Time(date_obs)
+        self.obs_dates.append(time)
 
     def translate(self, infile, test_type, image_type, seqno, time_stamp=None,
                   verbose=True):
