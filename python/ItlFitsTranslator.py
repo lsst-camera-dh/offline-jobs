@@ -37,6 +37,16 @@ class ItlFitsTranslator(VendorFitsTranslator):
                                              % my_rootdir, shell=True)
         self.rootdir = os.path.split(my_rootdir)[0]
 
+    def _extract_date_obs(self, hdulist):
+        """
+        ITL files split the date and time into DATE-OBS and TIME-OBS
+        header keywords.
+        """
+        date_obs = hdulist[0].header['DATE-OBS']
+        time_obs = hdulist[0].header['TIME-OBS'][:len('22:50:32')]
+        time = astropy.time.Time('T'.join((date_obs, time_obs)))
+        self.obs_dates.append(time)
+
     def translate(self, infile, test_type, image_type, seqno, time_stamp=None,
                   verbose=True):
         """

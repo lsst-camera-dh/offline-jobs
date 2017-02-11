@@ -32,6 +32,11 @@ class VendorFitsTranslator(object):
         self.rootdir = rootdir
         self.output_base_dir = outputBaseDir
         self.outfiles = []
+        self.obs_dates = []
+
+    @property
+    def date_obs(self):
+        return min(self.obs_dates).to_datetime().strftime('%Y-%m-%dT%H:%M:%S')
 
     def _infiles(self, pattern):
         "glob for files with the specified pattern"
@@ -52,6 +57,7 @@ class VendorFitsTranslator(object):
                 print("writing", outfile)
             hdulist.writeto(outfile, checksum=True, output_verify='fix')
             self.outfiles.append(os.path.relpath(outfile))
+            self._extract_date_obs(hdulist)
 
     @staticmethod
     def _set_amp_geom(hdulist):
