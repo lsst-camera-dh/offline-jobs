@@ -652,10 +652,12 @@ if __name__ == '__main__':
         vendor = ItlResults(vendorDataDir)
         translator = ItlFitsTranslator(lsstnum, vendorDataDir, '.')
         met_files = ITL_metrology_files(vendorDataDir, expected_num=1)
+        MET_date = extract_ITL_metrology_date(met_files[0])
     else:
         vendor = e2vResults(vendorDataDir)
         translator = e2vFitsTranslator(lsstnum, vendorDataDir, '.')
         met_files = e2v_metrology_files(vendorDataDir, expected_num=1)
+        MET_date = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S')
 
     results.extend(vendor.run_all())
 
@@ -671,6 +673,10 @@ if __name__ == '__main__':
                         DATA_SOURCE='VENDOR')
         results.append(lcatr.schema.fileref.make(system_noise_file,
                                                  metadata=metadata))
+
+    results.append(validate('vendor_test_dates',
+                            EO_date=translator.date_obs,
+                            MET_date=MET_date))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
