@@ -10,6 +10,7 @@ import subprocess
 import datetime
 from collections import OrderedDict
 import ConfigParser
+import xlrd
 import numpy as np
 import lcatr.schema
 import siteUtils
@@ -341,7 +342,7 @@ class ItlResults(VendorResults):
             test_results['flatness_grade'] = kwds['grade']
         except KeyError:
             test_results['flatness_grade'] = 'N/A'
-        schema_keys = 'znom zmean zmedian zsdev z95halfband flatnesshalfband_95'.split()
+        schema_keys = 'znom zmean zmedian zsdev z95halfband flatnesshalfband_95 deviation_from_znom'.split()
         # Omit key/value pairs not in the schema.
         for key in schema_keys:
             try:
@@ -547,7 +548,22 @@ class e2vResults(VendorResults):
 
     def metrology(self):
         "Process the metrology results."
-        return []
+        results = {}
+        command = ('find %s/ -name \*Mechanical_Shim_Test_Sheet.xls -print'
+                   % self.rootdir)
+        xls_file = subprocess.check_output(command, shell=True).split('\n')[0]
+        workbook = xlrd.open_workbook(xls_file)
+        sheet = workbook.sheet_by_index(0)
+        for irow in range(sheet.nrows):
+            if sheet.row(irow)[0].value.find('Mean Height') != -1:
+                results['zmean'] = sheet.row(irow)[2].value
+            if sheet.row(irow)[0].value.find('Deviation from Znom') != -1:
+                results['deviation_from_znom'] = sheet.row(irow)[2].value
+        for key in 'mounting_grade height_grade flatness_grade'.split():
+            results[key] = 'N/A'
+        for key in 'znom zmedian zsdev z95halfband flatnesshalfband_95'.split():
+            results[key] = -999
+        return [validate('metrology_vendorIngest', **results)]
 
 def extract_ITL_metrology_date(txtfile):
     """

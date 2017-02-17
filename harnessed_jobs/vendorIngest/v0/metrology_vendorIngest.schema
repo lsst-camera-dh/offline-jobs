@@ -11,4 +11,5 @@
     'z95halfband' : float,
     'flatness_grade' : str,
     'flatnesshalfband_95' : float,
+    'deviation_from_znom' : float
 }

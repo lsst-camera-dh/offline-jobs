@@ -1,10 +1,15 @@
 """
 Unit tests for validator_vendorIngest.py code.
 """
+from __future__ import print_function
 import os
 import sys
 import unittest
 sys.path.insert(0, '../harnessed_jobs/vendorIngest/v0')
+schema_dir = os.path.join(os.environ['OFFLINEJOBSDIR'],
+                          'harnessed_jobs', 'vendorIngest', 'v0')
+os.environ['LCATR_SCHEMA_PATH'] = \
+    ":".join((schema_dir, os.environ['LCATR_SCHEMA_PATH']))
 from validator_vendorIngest import ITL_metrology_files, ItlResults, \
     extract_ITL_metrology_date, e2vResults, e2v_metrology_files
 
@@ -27,6 +32,15 @@ class e2vResults_TestCase(unittest.TestCase):
         self.assertAlmostEqual(0.135196/100., max_frac_devs[1])
         self.assertAlmostEqual(0.119365/100., max_frac_devs[8])
 
+    def test_metrology_results(self):
+        vendorDataDir = '.'
+        vendor_results = e2vResults(vendorDataDir)
+        results = vendor_results.metrology()[0]
+        schema_keys = 'mounting_grade height_grade znom zmean zmedian zsdev z95halfband flatness_grade flatnesshalfband_95'.split()
+        self.assertAlmostEqual(results['zmean'], 12.99786111)
+        self.assertAlmostEqual(results['deviation_from_znom'], 0.004)
+        for key in 'znom zmedian zsdev z95halfband flatnesshalfband_95'.split():
+            self.assertEqual(results[key], -999)
 
 class ITL_metrology_files_TestCase(unittest.TestCase):
     """
