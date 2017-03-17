@@ -575,7 +575,11 @@ def extract_ITL_metrology_date(txtfile):
         line = fileobj.readline().strip('\n')
     tokens = re.sub('[:, ]', ' ', line).split()[-8:]
     hours = int(tokens[0])
-    if tokens[3] == 'PM':
+    if hours == 12 and tokens[3] == 'AM':
+        hours = 0
+    elif hours == 12 and tokens[3] == 'PM':
+        hours = 12
+    elif tokens[3] == 'PM':
         hours += 12
     minutes = int(tokens[1])
     seconds = int(tokens[2])
