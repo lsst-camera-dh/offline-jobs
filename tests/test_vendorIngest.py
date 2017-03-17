@@ -116,6 +116,24 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(extract_ITL_metrology_date(txtfile),
                          '2016-10-28T11:32:43')
 
+        txtfile = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                               'itl_test_data', 'metrology',
+                               'ITL_metrology_scan_file_date_example_5pm')
+        self.assertEqual(extract_ITL_metrology_date(txtfile),
+                         '2016-10-28T17:32:43')
+
+        txtfile = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                               'itl_test_data', 'metrology',
+                               'ITL_metrology_scan_file_date_example_12am')
+        self.assertEqual(extract_ITL_metrology_date(txtfile),
+                         '2016-10-28T00:32:43')
+
+        txtfile = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                               'itl_test_data', 'metrology',
+                               'ITL_metrology_scan_file_date_example_12pm')
+        self.assertEqual(extract_ITL_metrology_date(txtfile),
+                         '2016-10-28T12:32:43')
+
 class ITL_EO_files_TestCase(unittest.TestCase):
     """
     Test the parsing of the ITL vendor results.
