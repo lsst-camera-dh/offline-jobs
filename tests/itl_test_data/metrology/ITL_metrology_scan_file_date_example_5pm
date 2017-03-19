@@ -1,0 +1,99 @@
+Program: LSST_STA3800_Z_Inspect_R4.01.voy 5:32:43 PM  Friday, October 28, 2016
+Results File: LSST_STA3800_Z_Inspect_R4.01;sn20832.txt Lens: View 2.5X 9_15_15  Amb Temp 8.3C
+Company: University of Arizona           Imaging Technology Lab   Machine: S600SP06081067
+VmsVersion: 8.0.1.74
+                                                                                            
+
+
+Measurement             Actual   U 
+--------------------- ---------- - 
+Engraved ID Number= 078
+ITL CCD S/N= 20832
+
+DOT_TOP Diameter        1.9980   M 
+DOT_BOTTOM Diameter     1.9988   M 
+DOT_LEFT Diameter       1.9984   M 
+DOT_RIGHT Diameter      1.9983   M 
+CHECK1 XY Distance    125.0072   M 
+CHECK2 XY Distance    125.0058   M 
+P1 Z Position          -0.0371   M 
+P2 Z Position          -0.0365   M 
+P3 Z Position          -0.0248   M 
+P4 Z Position          -0.0168   M 
+P5 Z Position          -0.0070   M 
+P6 Z Position          -0.0076   M 
+P7 Z Position          -0.0196   M 
+P8 Z Position          -0.0277   M 
+DATUM_A Flatness        0.0003   M 
+
+
+
+Row Number is: 1
+STANDARD_1 X Position  67.1974   M 
+STANDARD_1 Y Position  71.0054   M 
+STANDARD_1 Z Position  13.0015   M 
+STANDARD_2 X Position  66.9476   M 
+STANDARD_2 Y Position -29.7472   M 
+STANDARD_2 Z Position  13.0006   M 
+STANDARD_3 X Position -26.0571   M 
+STANDARD_3 Y Position -29.5184   M 
+STANDARD_3 Z Position  13.0011   M 
+STANDARD_4 X Position -25.8112   M 
+STANDARD_4 Y Position  69.6717   M 
+STANDARD_4 Z Position  13.0008   M 
+ImagePoint X Position   1.34987  M 
+ImagePoint Y Position   1.35023  M 
+ImagePoint Z Position  12.98890  M 
+ImagePoint X Position   2.34986  M 
+ImagePoint Y Position   1.35193  M 
+ImagePoint Z Position  12.98937  M 
+ImagePoint X Position   3.34986  M 
+ImagePoint Y Position   1.35363  M 
+ImagePoint Z Position  12.98928  M 
+ImagePoint X Position   4.34985  M 
+ImagePoint Y Position   1.35533  M 
+ImagePoint Z Position  12.98911  M 
+ImagePoint X Position   5.34993  M 
+ImagePoint Y Position   1.35701  M 
+ImagePoint Z Position  12.98927  M 
+ImagePoint X Position   6.34992  M 
+ImagePoint Y Position   1.35869  M 
+ImagePoint Z Position  12.98950  M 
+ImagePoint X Position   7.34991  M 
+ImagePoint Y Position   1.35027  M 
+ImagePoint Z Position  12.98961  M 
+ImagePoint X Position   8.34989  M 
+ImagePoint Y Position   1.35195  M 
+ImagePoint Z Position  12.98983  M 
+ImagePoint X Position   9.34988  M 
+ImagePoint Y Position   1.35362  M 
+ImagePoint Z Position  12.99025  M 
+ImagePoint X Position  10.34986  M 
+ImagePoint Y Position   1.35530  M 
+ImagePoint Z Position  12.99123  M 
+ImagePoint X Position  11.34994  M 
+ImagePoint Y Position   1.35698  M 
+ImagePoint Z Position  12.99087  M 
+ImagePoint X Position  12.34992  M 
+ImagePoint Y Position   1.35866  M 
+ImagePoint Z Position  12.99041  M 
+ImagePoint X Position  13.34992  M 
+ImagePoint Y Position   1.35024  M 
+ImagePoint Z Position  12.99030  M 
+ImagePoint X Position  14.34990  M 
+ImagePoint Y Position   1.35191  M 
+ImagePoint Z Position  12.98991  M 
+ImagePoint X Position  15.34988  M 
+ImagePoint Y Position   1.35359  M 
+ImagePoint Z Position  12.98974  M 
+ImagePoint X Position  16.34986  M 
+ImagePoint Y Position   1.35527  M 
+ImagePoint Z Position  12.98927  M 
+ImagePoint X Position  17.34984  M 
+ImagePoint Y Position   1.35695  M 
+ImagePoint Z Position  12.98935  M 
+ImagePoint X Position  18.34992  M 
+ImagePoint Y Position   1.35862  M 
+ImagePoint Z Position  12.98910  M 
+ImagePoint X Position  19.34992  M 
+ImagePoint Y Position   1.35030  M 
