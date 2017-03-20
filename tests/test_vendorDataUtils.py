@@ -76,5 +76,28 @@ class VendorDataUtilsTestCase(unittest.TestCase):
             for amp in system_noise:
                 self.assertEqual(system_noise[amp], system_noise_expected[amp])
 
+    def test_get_e2v_xls_values(self):
+        xls_file = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                                'e2v_test_data',
+                                '16013-05-01_Pkg195_Mechanical_Shim_Test_Sheet.xls')
+        results = vendorDataUtils.get_e2v_xls_values(xls_file)
+        self.assertAlmostEqual(results['Mean Height'], 13.0002979240849)
+        self.assertAlmostEqual(results['Deviation from Znom'],
+                               0.000888893586400545)
+
+        xls_file = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                                'e2v_test_data',
+                                '16013-10-04_Pkg163_Mechanical_Shim_Test_Sheet.xls')
+        results = vendorDataUtils.get_e2v_xls_values(xls_file)
+        self.assertAlmostEqual(results['Mean Height'], 12.9978611111111)
+        self.assertAlmostEqual(results['Deviation from Znom'], 0.004)
+
+        xls_file = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                                'e2v_test_data',
+                                '15433-03-04_Pkg107_Mechanical_Shim_Test_Sheet.xls')
+        results = vendorDataUtils.get_e2v_xls_values(xls_file)
+        self.assertAlmostEqual(results['Mean Height'], 13.0019166666667)
+        self.assertRaises(KeyError, results.__getitem__, 'Deviation from Znom')
+
 if __name__ == '__main__':
     unittest.main()
