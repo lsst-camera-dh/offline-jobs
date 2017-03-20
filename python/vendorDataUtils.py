@@ -3,6 +3,7 @@ Utilities for vendor data handling.
 """
 from __future__ import absolute_import, print_function
 import os
+import xlrd
 import siteUtils
 from DataCatalog import DataCatalog
 
@@ -81,3 +82,64 @@ def getSystemNoise(gains, folder=None):
 
     # Convert from ADU to e- and return.
     return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
+
+def find_e2v_xls_label(entries, label):
+    """
+    Find an entry in a row of data from an e2v .xls file based on the
+    specified label.
+
+    Parameters
+    ----------
+    entries : list
+        Cell values from a row in an .xls sheet processed by xlrd.
+    label : str
+        The label of the desired cell, e.g., "Deviation from Znom".
+
+
+    Returns
+    -------
+    int : The index of the entry.
+
+    Raises
+    ------
+    RuntimeError : If no entry for the label has been found.
+    """
+    for i, entry in enumerate(entries):
+        try:
+            if entry.lower().find(label.lower()) != -1:
+                return i
+        except AttributeError:
+            pass
+    raise RuntimeError("label %s not found", label)
+
+def get_e2v_xls_values(xls_file, labels=('Mean Height', 'Deviation from Znom')):
+    """
+    Get the values associated with the specified labels from an e2v
+    .xls file.  Check every row of every sheet in the workbook.
+
+    Parameters
+    ----------
+    xls_file : str
+        The filename of the e2v .xls file.
+    labels : sequence, optional
+        List or tuple of labels to look for.
+        Default: ('Mean Height', 'Deviation from Znom')
+
+    Returns
+    -------
+    dict : A dictionary of the found labels and their values.
+    """
+    workbook = xlrd.open_workbook(xls_file)
+    results = {}
+    for isheet in range(workbook.nsheets):
+        sheet = workbook.sheet_by_index(isheet)
+        for irow in range(sheet.nrows):
+            # Make a list of entry values, excising empty cells.
+            entries = [x.value for x in sheet.row(irow) if x.value != u'']
+            for label in labels:
+                try:
+                    index = find_e2v_xls_label(entries, label)
+                    results[label] = entries[index+1]
+                except RuntimeError as eobj:
+                    pass
+    return results
