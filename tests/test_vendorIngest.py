@@ -5,7 +5,8 @@ from __future__ import print_function
 import os
 import sys
 import unittest
-sys.path.insert(0, '../harnessed_jobs/vendorIngest/v0')
+sys.path.insert(0, os.path.join(os.environ['OFFLINEJOBSDIR'], 'harnessed_jobs',
+                                'vendorIngest', 'v0'))
 schema_dir = os.path.join(os.environ['OFFLINEJOBSDIR'],
                           'harnessed_jobs', 'vendorIngest', 'v0')
 os.environ['LCATR_SCHEMA_PATH'] = \

@@ -4,6 +4,10 @@ Unit tests for vendorDataUtils module.
 from __future__ import print_function, absolute_import
 import os
 import unittest
+schema_dir = os.path.join(os.environ['OFFLINEJOBSDIR'],
+                          'harnessed_jobs', 'vendorIngest', 'v0')
+os.environ['LCATR_SCHEMA_PATH'] = \
+    ":".join((schema_dir, os.environ['LCATR_SCHEMA_PATH']))
 import siteUtils
 import vendorDataUtils
 
