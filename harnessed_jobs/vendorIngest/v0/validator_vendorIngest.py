@@ -554,7 +554,7 @@ class e2vResults(VendorResults):
         xls_file = subprocess.check_output(command, shell=True).split('\n')[0]
         e2v_values = vendorDataUtils.get_e2v_xls_values(xls_file)
         results['zmean'] = e2v_values.get('Mean Height', -999)
-        results['deviation_from znom'] = \
+        results['deviation_from_znom'] = \
             e2v_values.get('Deviation from Znom', -999)
         for key in 'mounting_grade height_grade flatness_grade'.split():
             results[key] = 'N/A'
