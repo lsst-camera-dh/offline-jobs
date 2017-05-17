@@ -103,5 +103,31 @@ class VendorDataUtilsTestCase(unittest.TestCase):
         self.assertAlmostEqual(results['Mean Height'], 13.0019166666667)
         self.assertRaises(KeyError, results.__getitem__, 'Deviation from Znom')
 
+    def test_e2v_system_noise(self):
+        "Test extraction of system noise from e2v data package."
+        fits_file = os.path.join(os.environ['OFFLINEJOBSDIR'], 'tests',
+                                 'e2v_test_data',
+                                 'e2v_xray_xray_ARCHON_ext_only.fits.gz')
+        system_noise = vendorDataUtils.e2v_system_noise(fits_file)
+        expected_values = (1.3590000000,
+                           1.2430000000,
+                           1.2720000000,
+                           1.3240000000,
+                           1.2420000000,
+                           1.2320000000,
+                           1.2650000000,
+                           1.2570000000,
+                           1.2550000000,
+                           1.4100000000,
+                           1.2580000000,
+                           1.2950000000,
+                           1.2310000000,
+                           1.3350000000,
+                           1.2500000000,
+                           1.3060000000)
+        self.assertEqual(len(expected_values), len(system_noise))
+        for amp, value in system_noise.items():
+            self.assertAlmostEqual(expected_values[amp-1], value)
+
 if __name__ == '__main__':
     unittest.main()

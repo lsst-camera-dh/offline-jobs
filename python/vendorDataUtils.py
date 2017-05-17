@@ -3,6 +3,7 @@ Utilities for vendor data handling.
 """
 from __future__ import absolute_import, print_function
 import os
+import astropy.io.fits as fits
 import xlrd
 import siteUtils
 from DataCatalog import DataCatalog
@@ -143,3 +144,26 @@ def get_e2v_xls_values(xls_file, labels=('Mean Height', 'Deviation from Znom')):
                 except RuntimeError as eobj:
                     pass
     return results
+
+def e2v_system_noise(fits_file):
+    """
+    Extract the system noise from the ARCHON extension of an e2v
+    FITS file.
+
+    Parameters
+    ----------
+    fits_file : str
+        Filename of the FITS file from which to harvest the system noise
+        values.  They are assumed to live in the ARCHON extension and have
+        keyword names of the form SYS_N#.
+
+    Returns
+    -------
+    dict : Dictionary of system noise values in DN, keyed by amp.
+    """
+    system_noise = dict()
+    hdus = fits.open(fits_file)
+    for amp in range(1, 17):
+        keyword = 'SYS_N%d' % amp
+        system_noise[amp] = hdus['ARCHON'].header[keyword]
+    return system_noise
