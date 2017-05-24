@@ -3,6 +3,7 @@
 from __future__ import absolute_import, print_function
 import os
 import sys
+import glob
 import re
 import fnmatch
 import shutil
@@ -19,26 +20,6 @@ from e2vFitsTranslator import e2vFitsTranslator
 
 __all__ = ['ItlResults', 'ITL_metrology_files', 'extract_ITL_metrology_date',
            'e2vResults', 'e2v_metrology_files']
-
-_e2v_system_noise = """# 1x gain data emailed from e2v
-# Amp    system noise (ADU rms)
-  1         1.146969
-  2         1.2077
-  3         1.250879
-  4         1.177835
-  5         1.230289
-  6         1.151802
-  7         1.270456
-  8         1.166207
-  9         1.167508
-  10        1.164649
-  11        1.112257
-  12        1.169129
-  13        1.234604
-  14        1.173417
-  15        1.260886
-  16        1.102168
-"""
 
 def validate(schema, **kwds):
     "More compact call to lcatr.schema.valid"
@@ -415,10 +396,15 @@ class e2vResults(VendorResults):
             results.append(validate(job, amp=amp, read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
-        # Write the 1x gain system noise values sent by email from e2v.
+        # Extract the system noise from the e2v x-ray image FITS file
+        # and write to a text file for persisting by the eTraveler.
+        xray_files = glob.glob(os.path.join(self.rootdir, '*_xray_xray_*.fits'))
+        system_noise = vendorDataUtils.e2v_system_noise(xray_files[0])
         outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
         with open(outfile, 'w') as output:
-            output.write(_e2v_system_noise)
+            output.write('# Amp    system noise (ADU rms)\n')
+            for amp, value in system_noise.items():
+                output.write('%i               %.6f\n' % (amp, value))
         return results
 
     def bright_defects(self):
