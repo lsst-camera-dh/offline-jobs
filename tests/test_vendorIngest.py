@@ -110,6 +110,16 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(test_results['zquan_75.0'], '12.9928')
         self.assertEqual(test_results['zquan_99.5'], '12.9941')
         self.assertEqual(test_results['zquan_100.0'], '12.9945')
+        self.assertEqual(test_results['frac_outside'], 0.)
+
+    def test_contained_fraction(self):
+        "Test ItlResults.contained_fraction."
+        znom = 0.
+        zbounds = (-0.5, 0.75)
+        zvalues = (-1., 0, 1)
+        quantiles = (0, 50, 100)
+        frac = ItlResults.contained_fraction(zvalues, quantiles, znom, zbounds)
+        self.assertAlmostEqual(0.875 - 0.25, frac)
 
     def test_extract_ITL_metrology_date(self):
         """
