@@ -309,27 +309,31 @@ class ItlResults(VendorResults):
     def _metrology_test_results(self, job='metrology'):
         "Process the metrology results."
         test_results = {}
+        # Process [Mounting] section.
         try:
-            test_results['mounting_grade'] = dict(self[job].items('Mounting'))['grade']
+            test_results['mounting_grade'] \
+                = dict(self[job].items('Mounting'))['grade']
         except KeyError:
             test_results['mounting_grade'] = 'N/A'
+        # Process [Height] section.
         kwds = dict(self[job].items('Height'))
         try:
             test_results['height_grade'] = kwds['grade']
         except KeyError:
             test_results['height_grade'] = 'N/A'
+        # Process [Flatness] section.
         kwds.update(dict(self[job].items('Flatness')))
         try:
             test_results['flatness_grade'] = kwds['grade']
         except KeyError:
             test_results['flatness_grade'] = 'N/A'
-        schema_keys = 'znom zmean zmedian zsdev z95halfband flatnesshalfband_95 deviation_from_znom'.split()
-        # Omit key/value pairs not in the schema.
-        for key in schema_keys:
-            try:
-                test_results[key] = kwds[key]
-            except KeyError: # fill with sentinel value
-                test_results[key] = '-999'
+        # Fill in all of the schema values.
+        schema = lcatr.schema.get('metrology_vendorIngest')
+        sentinel_value = '-999'
+        for key in schema.keys():
+            if key in test_results:
+                continue
+            test_results[key] = kwds.get(key, sentinel_value)
         return test_results
 
     def metrology(self):
@@ -544,8 +548,12 @@ class e2vResults(VendorResults):
             e2v_values.get('Deviation from Znom', -999)
         for key in 'mounting_grade height_grade flatness_grade'.split():
             results[key] = 'N/A'
-        for key in 'znom zmedian zsdev z95halfband flatnesshalfband_95'.split():
-            results[key] = -999
+        schema = lcatr.schema.get('metrology_vendorIngest')
+        sentinel_value = '-999'
+        for key in schema.keys():
+            if key in results or key in ('schema_name', 'schema_version'):
+                continue
+            results[key] = sentinel_value
         return [validate('metrology_vendorIngest', **results)]
 
 def extract_ITL_metrology_date(txtfile):

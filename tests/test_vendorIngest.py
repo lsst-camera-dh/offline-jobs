@@ -105,6 +105,11 @@ class ITL_metrology_files_TestCase(unittest.TestCase):
         self.assertEqual(test_results['zsdev'], '0.0011')
         self.assertEqual(test_results['z95halfband'], '0.0020')
         self.assertEqual(test_results['flatnesshalfband_95'], '1.5')
+        self.assertEqual(test_results['zquan_0.0'], '12.9877')
+        self.assertEqual(test_results['zquan_2.5'], '12.9897')
+        self.assertEqual(test_results['zquan_75.0'], '12.9928')
+        self.assertEqual(test_results['zquan_99.5'], '12.9941')
+        self.assertEqual(test_results['zquan_100.0'], '12.9945')
 
     def test_extract_ITL_metrology_date(self):
         """
