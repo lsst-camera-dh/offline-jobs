@@ -11,5 +11,17 @@
     'z95halfband' : float,
     'flatness_grade' : str,
     'flatnesshalfband_95' : float,
-    'deviation_from_znom' : float
+    'deviation_from_znom' : float,
+    'frac_outside' : float,
+    'zquan_0.0' : float,
+    'zquan_0.5' : float,
+    'zquan_1.0' : float,
+    'zquan_2.5' : float,
+    'zquan_25.0' : float,
+    'zquan_50.0' : float,
+    'zquan_75.0' : float,
+    'zquan_97.5' : float,
+    'zquan_99.0' : float,
+    'zquan_99.5' : float,
+    'zquan_100.0' : float
 }
