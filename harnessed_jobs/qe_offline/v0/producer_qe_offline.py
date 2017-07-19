@@ -23,10 +23,7 @@ try:
 except:
     vendor_data = False
 
-# The photodiode ratio file for BNL data.
-# @todo Set this to the correct file for production runs.
-pd_ratio_file = os.path.join(os.environ['EOTEST_DIR'], 'data', 'qe',
-                             'BNL', 'pd_ratio_2015-08-29.txt')
+pd_ratio_file = os.environ['LCATR_PD_RATIO_FILE']
 mask_files = eotestUtils.glob_mask_files()
 gains = eotestUtils.getSensorGains(jobname='fe55_offline')
 
