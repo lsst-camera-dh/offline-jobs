@@ -438,15 +438,21 @@ class e2vResults(VendorResults):
             results.append(validate(job, amp=amp, read_noise=read_noise,
                                     system_noise=system_noise,
                                     total_noise=total_noise))
-        # Extract the system noise from the e2v x-ray image FITS file
-        # and write to a text file for persisting by the eTraveler.
+        # Extract the system noise from the e2v "noims_nois" FITS files
+        # and the "electronic gain" ratio from the "xray_xray" and "noims_nois"
+        # files and write to a text file for persisting by the eTraveler.
         xray_files = glob.glob(os.path.join(self.rootdir, '*_xray_xray_*.fits'))
-        system_noise = vendorDataUtils.e2v_system_noise(xray_files[0])
+        noise_files \
+            = glob.glob(os.path.join(self.rootdir, '*_noims_nois_*.fits'))
+        system_noise = vendorDataUtils.e2v_system_noise(noise_files[0])
+        gain_ratios = vendorDataUtils.e2v_electronic_gain_ratios(xray_files[0],
+                                                                 noise_files[0])
         outfile = '%s_system_noise.txt' % siteUtils.getUnitId()
         with open(outfile, 'w') as output:
-            output.write('# Amp    system noise (ADU rms)\n')
+            output.write('# Amp    system noise (ADU rms)   elec. gain ratio\n')
             for amp, value in system_noise.items():
-                output.write('%i               %.6f\n' % (amp, value))
+                output.write('%i               %.6f         %.3f\n'
+                             % (amp, value, gain_ratios[amp]))
         return results
 
     def bright_defects(self):

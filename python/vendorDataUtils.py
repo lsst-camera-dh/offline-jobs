@@ -167,3 +167,27 @@ def e2v_system_noise(fits_file):
         keyword = 'SYS_N%d' % amp
         system_noise[amp] = hdus['ARCHON'].header[keyword]
     return system_noise
+
+def e2v_electronic_gain_ratios(xray_file, noise_file):
+    """
+    Extract the ratio of "electronic gains" from e2v X-ray and noise files.
+
+    Parameters
+    ----------
+    xray_file : str
+        Filename of e2v "xray_xray" file.
+    noise_file : str
+        Filename of e2v "noims_nois" file.
+
+    Returns
+    -------
+    dict : A dictionary keyed by amp of gain ratio values,
+        gain(xray)/gain(noise)
+    """
+    gain_ratios = dict()
+    xray_header = fits.open(xray_file)[0].header
+    noise_header = fits.open(noise_file)[0].header
+    for amp in range(1, 17):
+        keyword = 'SYS_G%d' % amp
+        gain_ratios[amp] = xray_header[keyword]/noise_header[keyword]
+    return gain_ratios
