@@ -84,6 +84,30 @@ def getSystemNoise(gains, folder=None):
     # Convert from ADU to e- and return.
     return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
 
+def get_e2v_gain_ratios():
+    "Return the electronic gain ratio for e2v data."
+    try:
+        # Use the env var that can be set by the user in lcatr.cfg.
+        folder = os.environ['LCATR_DATACATALOG_FOLDER']
+    except KeyError:
+        # Infer the folder based on the eT server instance.
+        folder = vendor_DataCatalog_folder()
+    system_noise_file = query_for_vendor_system_noise(folder)
+    gain_ratios = {amp: 1 for amp in range(1, 17)}
+    if system_noise_file is not None:
+        with open(system_noise_file) as fp:
+            for line in fp:
+                if line.startswith("#"):
+                    continue
+                tokens = line.strip('\n').split()
+                try:
+                    gain_ratios[int(tokens[0])] = float(tokens[2])
+                except IndexError:
+                    # system noise file doesn't have gain ratio, so
+                    # use default value of 1.
+                    pass
+    return gain_ratios
+
 def find_e2v_xls_label(entries, label):
     """
     Find an entry in a row of data from an e2v .xls file based on the
