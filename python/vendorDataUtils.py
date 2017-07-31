@@ -13,7 +13,15 @@ default_system_noise = {'ITL': dict((item+1, value) for item, value in
                                                1.49, 1.56, 1.40, 1.71,
                                                1.63, 1.43, 1.61, 1.45,
                                                1.50, 1.64, 1.47, 1.55))),
-                        'E2V': dict((item, 0) for item in range(1, 17))}
+                        'E2V': dict((item+1, value) for item, value in
+                                    enumerate((1.146969, 1.2077,
+                                               1.250879, 1.177835,
+                                               1.230289, 1.151802,
+                                               1.270456, 1.166207,
+                                               1.167508, 1.164649,
+                                               1.112257, 1.169129,
+                                               1.234604, 1.173417,
+                                               1.260886, 1.102168)))}
 
 def vendor_DataCatalog_folder(sensor_id=None):
     """
@@ -83,6 +91,30 @@ def getSystemNoise(gains, folder=None):
 
     # Convert from ADU to e- and return.
     return dict([(amp, gains[amp]*system_noise[amp]) for amp in gains])
+
+def get_e2v_gain_ratios():
+    "Return the electronic gain ratio for e2v data."
+    try:
+        # Use the env var that can be set by the user in lcatr.cfg.
+        folder = os.environ['LCATR_DATACATALOG_FOLDER']
+    except KeyError:
+        # Infer the folder based on the eT server instance.
+        folder = vendor_DataCatalog_folder()
+    system_noise_file = query_for_vendor_system_noise(folder)
+    gain_ratios = {amp: 1 for amp in range(1, 17)}
+    if system_noise_file is not None:
+        with open(system_noise_file) as fp:
+            for line in fp:
+                if line.startswith("#"):
+                    continue
+                tokens = line.strip('\n').split()
+                try:
+                    gain_ratios[int(tokens[0])] = float(tokens[2])
+                except IndexError:
+                    # system noise file doesn't have gain ratio, so
+                    # use default value of 1.
+                    pass
+    return gain_ratios
 
 def find_e2v_xls_label(entries, label):
     """
@@ -161,9 +193,36 @@ def e2v_system_noise(fits_file):
     -------
     dict : Dictionary of system noise values in DN, keyed by amp.
     """
-    system_noise = dict()
     hdus = fits.open(fits_file)
-    for amp in range(1, 17):
-        keyword = 'SYS_N%d' % amp
-        system_noise[amp] = hdus['ARCHON'].header[keyword]
+    try:
+        system_noise = dict()
+        for amp in range(1, 17):
+            keyword = 'SYS_N%d' % amp
+            system_noise[amp] = hdus['ARCHON'].header[keyword]
+    except KeyError:
+        system_noise = default_system_noise['E2V']
     return system_noise
+
+def e2v_electronic_gain_ratios(xray_file, noise_file):
+    """
+    Extract the ratio of "electronic gains" from e2v X-ray and noise files.
+
+    Parameters
+    ----------
+    xray_file : str
+        Filename of e2v "xray_xray" file.
+    noise_file : str
+        Filename of e2v "noims_nois" file.
+
+    Returns
+    -------
+    dict : A dictionary keyed by amp of gain ratio values,
+        gain(xray)/gain(noise)
+    """
+    gain_ratios = dict()
+    xray_header = fits.open(xray_file)[0].header
+    noise_header = fits.open(noise_file)[0].header
+    for amp in range(1, 17):
+        keyword = 'SYS_G%d' % amp
+        gain_ratios[amp] = noise_header[keyword]/xray_header[keyword]
+    return gain_ratios
