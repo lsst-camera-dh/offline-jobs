@@ -23,7 +23,8 @@ try:
 except:
     vendor_data = False
 
-pd_ratio_file = os.environ['LCATR_PD_RATIO_FILE']
+pd_ratio_file = os.environ.get('LCATR_PD_RATIO_FILE', None)
+
 mask_files = eotestUtils.glob_mask_files()
 gains = eotestUtils.getSensorGains(jobname='fe55_offline')
 
