@@ -13,7 +13,15 @@ default_system_noise = {'ITL': dict((item+1, value) for item, value in
                                                1.49, 1.56, 1.40, 1.71,
                                                1.63, 1.43, 1.61, 1.45,
                                                1.50, 1.64, 1.47, 1.55))),
-                        'E2V': dict((item, 0) for item in range(1, 17))}
+                        'E2V': dict((item+1, value) for item, value in
+                                    enumerate((1.146969, 1.2077,
+                                               1.250879, 1.177835,
+                                               1.230289, 1.151802,
+                                               1.270456, 1.166207,
+                                               1.167508, 1.164649,
+                                               1.112257, 1.169129,
+                                               1.234604, 1.173417,
+                                               1.260886, 1.102168)))}
 
 def vendor_DataCatalog_folder(sensor_id=None):
     """
@@ -185,11 +193,14 @@ def e2v_system_noise(fits_file):
     -------
     dict : Dictionary of system noise values in DN, keyed by amp.
     """
-    system_noise = dict()
     hdus = fits.open(fits_file)
-    for amp in range(1, 17):
-        keyword = 'SYS_N%d' % amp
-        system_noise[amp] = hdus['ARCHON'].header[keyword]
+    try:
+        system_noise = dict()
+        for amp in range(1, 17):
+            keyword = 'SYS_N%d' % amp
+            system_noise[amp] = hdus['ARCHON'].header[keyword]
+    except KeyError:
+        system_noise = default_system_noise['E2V']
     return system_noise
 
 def e2v_electronic_gain_ratios(xray_file, noise_file):
@@ -213,5 +224,5 @@ def e2v_electronic_gain_ratios(xray_file, noise_file):
     noise_header = fits.open(noise_file)[0].header
     for amp in range(1, 17):
         keyword = 'SYS_G%d' % amp
-        gain_ratios[amp] = xray_header[keyword]/noise_header[keyword]
+        gain_ratios[amp] = noise_header[keyword]/xray_header[keyword]
     return gain_ratios
