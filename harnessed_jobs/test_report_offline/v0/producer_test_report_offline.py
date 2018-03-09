@@ -227,8 +227,21 @@ summary_lims_file = processName_dependencyGlob('summary.lims',
                                                jobname='fe55_offline')[0]
 software_versions = siteUtils.parse_package_versions_summary(summary_lims_file)
 
+# Sensor grade
+# Get BNL bias offsets file from datacatalog
+data_product = 'VENDOR_BIAS_OFFSETS'
+query = ' && '.join(('LSST_NUM=="%(sensor_id)s"',
+                     'DATA_PRODUCT=="%(data_product)s"',
+                     'TEST_CATEGORY=="EO"')) % locals()
+datasets = siteUtils.datacatalog_query(query)
+bnl_bias_offset_file = datasets.full_paths()[0]
+results = sensorTest.EOTestResults(results_file)
+sensor_grade_stats \
+    = results.sensor_stats(bnl_bias_offset_file=bnl_bias_offset_file)
+
 # Create the test report pdf.
 report = sensorTest.EOTestReport(plots, wl_file_path,
                                  software_versions=software_versions,
-                                 job_ids=job_ids)
+                                 job_ids=job_ids,
+                                 sensor_grade_stats=sensor_grade_stats)
 report.make_pdf()
