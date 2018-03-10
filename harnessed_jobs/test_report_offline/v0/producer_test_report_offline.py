@@ -234,10 +234,14 @@ query = ' && '.join(('LSST_NUM=="%(sensor_id)s"',
                      'DATA_PRODUCT=="%(data_product)s"',
                      'TEST_CATEGORY=="EO"')) % locals()
 datasets = siteUtils.datacatalog_query(query)
-bnl_bias_offset_file = datasets.full_paths()[0]
+try:
+    bnl_bias_stats_file = datasets.full_paths()[0]
+except IndexError:
+    bnl_bias_stats_file = None
+
 results = sensorTest.EOTestResults(results_file)
 sensor_grade_stats \
-    = results.sensor_stats(bnl_bias_offset_file=bnl_bias_offset_file)
+    = results.sensor_stats(bnl_bias_stats_file=bnl_bias_stats_file)
 
 # Create the test report pdf.
 report = sensorTest.EOTestReport(plots, wl_file_path,
