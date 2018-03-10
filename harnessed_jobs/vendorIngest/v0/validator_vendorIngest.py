@@ -124,6 +124,10 @@ class ItlResults(VendorResults):
                                     psf_sigma=amp_catalog['meansigma']))
         return results
 
+    def bias_offsets_file(self):
+        "Return the full path to the ITL bias offsets file."
+        return self.inverse_mapping["BNL_bias_stats.txt"]
+
     def read_noise(self):
         "Process the read noise results."
         job = 'read_noise'
@@ -732,6 +736,16 @@ if __name__ == '__main__':
     results.append(validate('vendor_test_dates',
                             EO_date=translator.date_obs,
                             MET_date=MET_date))
+
+    # Persist special bias offsets file for ITL data (see LSSTTD-1255).
+    if siteUtils.getCcdVendor() == 'ITL':
+        bias_offsets_file = vendor.bias_offsets_file()
+        outfile = os.path.basename(bias_offsets_file)
+        shutil.copy(bias_offsets_file, outfile)
+        metadata = dict(DATA_PRODUCT='VENDOR_BIAS_OFFSETS',
+                        LSST_NUM=siteUtils.getUnitId(),
+                        TEST_CATEGORY='EO')
+        results.append(lcatr.schema.fileref.make(outfile, metadata=metadata))
 
     lcatr.schema.write_file(results)
     lcatr.schema.validate_file()
