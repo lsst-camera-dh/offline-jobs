@@ -236,8 +236,11 @@ query = ' && '.join(('LSST_NUM=="%(sensor_id)s"',
 datasets = siteUtils.datacatalog_query(query)
 try:
     bnl_bias_stats_file = datasets.full_paths()[0]
+    with open(bnl_bias_stats_file, 'r') as input_:
+        bnl_bias_offsets = eval(input_.readline().strip().split(':')[1])
 except IndexError:
     bnl_bias_stats_file = None
+    bnl_bias_offsets = None
 
 results = sensorTest.EOTestResults(results_file)
 sensor_grade_stats \
@@ -247,5 +250,6 @@ sensor_grade_stats \
 report = sensorTest.EOTestReport(plots, wl_file_path,
                                  software_versions=software_versions,
                                  job_ids=job_ids,
-                                 sensor_grade_stats=sensor_grade_stats)
+                                 sensor_grade_stats=sensor_grade_stats,
+                                 bnl_bias_offsets=bnl_bias_offsets)
 report.make_pdf()
