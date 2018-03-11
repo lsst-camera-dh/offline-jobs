@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import glob
 import lcatr.schema
+import lsst.eotest.sensor as sensorTest
 import siteUtils
 import eotestUtils
 
@@ -18,6 +19,11 @@ eotestUtils.addHeaderData(results_file, LSST_NUM=sensor_id,
                           CCD_MANU=siteUtils.getCcdVendor().upper())
 results = [lcatr.schema.fileref.make(results_file,
                                      metadata=md(DATA_PRODUCT='EOTEST_RESULTS'))]
+
+eotest_results = sensorTest.EOTestResults(results_file)
+sensor_stats = eotest_results.sensor_stats()
+results.append(lcatr.schema.valid(lcatr.schema.get('test_report_offline'),
+                                  sensor_grade=sensor_stats['GRADE']))
 
 png_files = glob.glob('*.png')
 results.extend([lcatr.schema.fileref.make(item,
