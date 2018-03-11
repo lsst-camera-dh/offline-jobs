@@ -1,0 +1,6 @@
+# -*- python -*-
+{
+    'schema_name' : 'test_report_offline',
+    'schema_version' : 0,
+    'sensor_grade' : str
+}
